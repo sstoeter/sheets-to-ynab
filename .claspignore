@@ -1,0 +1,5 @@
+# Ignore markdown, tests, and configuration files
+**/*.md
+**/*.test.js
+node_modules/**
+.git/**

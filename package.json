@@ -1,0 +1,12 @@
+{
+  "name": "sheets-to-ynab",
+  "version": "1.0.0",
+  "description": "Google Sheets to YNAB synchronization add-on",
+  "scripts": {
+    "validate": "node scripts/validate-manifest.js",
+    "push": "node scripts/validate-manifest.js && clasp push -f"
+  },
+  "keywords": ["ynab", "google-sheets", "apps-script", "oauth2"],
+  "author": "Sascha Stoeter <stoeter@gmail.com> (https://github.com/sstoeter)",
+  "license": "MIT"
+}

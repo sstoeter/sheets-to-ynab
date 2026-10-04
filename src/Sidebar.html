@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #137333;
+      --primary-hover: #0d5324;
+      --primary-light: #e6f4ea;
+      --surface: #ffffff;
+      --background: #f8f9fa;
+      --text: #202124;
+      --text-secondary: #5f6368;
+      --border: #dadce0;
+      --danger: #d93025;
+      --warning: #f29900;
+      --shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.1), 0 1px 3px 1px rgba(60,64,67,0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      background-color: var(--background);
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--primary);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-online {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .badge-offline {
+      background: #fce8e6;
+      color: var(--danger);
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 9px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #ffffff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: #f1f3f4;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat-box {
+      background: #f1f3f4;
+      border-radius: 6px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+
+    .stat-box.highlight {
+      background: var(--primary-light);
+    }
+
+    .stat-num {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-box.highlight .stat-num {
+      color: var(--primary);
+    }
+
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .console {
+      background: #202124;
+      color: #e8eaed;
+      font-family: monospace;
+      font-size: 11px;
+      border-radius: 6px;
+      padding: 10px;
+      height: 110px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .meta-tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #f1f3f4;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z"/>
+      </svg>
+      YNAB Sync
+    </div>
+    <span id="conn-badge" class="badge badge-offline">Checking...</span>
+  </div>
+
+  <!-- State 0: Library Missing Card -->
+  <div id="card-lib-missing" class="card hidden" style="border-left: 4px solid var(--danger);">
+    <div class="card-title" style="color:var(--danger);">OAuth2 Library Missing</div>
+    <p style="font-size:12px; color:var(--text); margin-bottom:8px;">
+      The <b>OAuth2</b> library is not detected in Apps Script.
+    </p>
+    <p style="font-size:11px; color:var(--text-secondary); margin-bottom:8px;">
+      In the Apps Script editor, click <b>Libraries +</b>, enter Script ID:
+    </p>
+    <div class="meta-tag" style="width:100%; font-size:10px; margin-bottom:8px;">1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF</div>
+    <p style="font-size:11px; color:var(--text-secondary); margin-bottom:10px;">
+      Select version (43), set Identifier to <code>OAuth2</code>, and click <b>Add</b>.
+    </p>
+    <button class="btn btn-secondary" onclick="refreshState()">Check Again</button>
+  </div>
+
+  <!-- State 1: Developer Credentials Setup Card -->
+  <div id="card-dev-creds" class="card hidden">
+    <div class="card-title">OAuth App Setup</div>
+    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
+      Register a Developer App in YNAB with this Redirect URI:
+    </p>
+    <div class="form-group">
+      <div id="redirect-uri-display" class="meta-tag" style="width:100%; font-size:11px;"></div>
+    </div>
+    <div class="form-group">
+      <label>YNAB Client ID</label>
+      <input type="text" id="dev-client-id" placeholder="Paste Client ID">
+    </div>
+    <div class="form-group">
+      <label>YNAB Client Secret</label>
+      <input type="password" id="dev-client-secret" placeholder="Paste Client Secret">
+    </div>
+    <button class="btn btn-primary" onclick="saveDevCredentials()">Save & Continue</button>
+  </div>
+
+  <!-- State 2: Connect to YNAB Card -->
+  <div id="card-auth" class="card hidden">
+    <div class="card-title">Connect Account</div>
+    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">
+      Authorize YNAB Sync to read and upload transactions to your budgets.
+    </p>
+    <a id="btn-auth-link" href="#" target="_blank" class="btn btn-primary" onclick="startAuthPoll()">
+      Connect to YNAB
+    </a>
+  </div>
+
+  <!-- State 3: Sheet Account Association -->
+  <div id="card-account" class="card hidden">
+    <div class="card-title">
+      <span>Linked YNAB Account</span>
+      <div style="display:flex; gap:4px;">
+        <button id="btn-change-account" class="btn btn-secondary" style="width:auto; padding:2px 8px; font-size:11px;" onclick="showAccountPicker()">Change</button>
+        <button id="btn-unlink-account" class="btn btn-secondary hidden" style="width:auto; padding:2px 8px; font-size:11px;" onclick="unlinkAccount()">Unlink</button>
+      </div>
+    </div>
+
+    <!-- Read-only Display -->
+    <div id="account-display" class="form-group">
+      <div style="font-size:11px; color:var(--text-secondary); margin-bottom:2px;">Active Sheet: <b id="active-sheet-name"></b></div>
+      <div id="linked-account-name" class="meta-tag" style="width:100%;">None</div>
+    </div>
+
+    <!-- Account Picker Form -->
+    <div id="account-picker" class="hidden">
+      <div class="form-group">
+        <label>Select Budget</label>
+        <select id="select-budget" onchange="onBudgetChange()">
+          <option value="">Loading budgets...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Select Account</label>
+        <select id="select-account">
+          <option value="">Choose a budget first</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" onclick="saveAccountLink()">Link to Sheet</button>
+        <button class="btn btn-secondary" onclick="hideAccountPicker()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- State 4: Sync & Actions Card -->
+  <div id="card-sync" class="card hidden">
+    <div class="card-title">Transactions</div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div id="stat-total" class="stat-num">0</div>
+        <div class="stat-lbl">Rows</div>
+      </div>
+      <div class="stat-box highlight">
+        <div id="stat-matched" class="stat-num">0</div>
+        <div class="stat-lbl">Matched</div>
+      </div>
+      <div class="stat-box">
+        <div id="stat-unmatched" class="stat-num">0</div>
+        <div class="stat-lbl">Unmatched</div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button id="btn-match" class="btn btn-primary" onclick="runMatch()">
+        1. Match Existing Transactions
+      </button>
+      <button id="btn-upload" class="btn btn-secondary" onclick="runUpload()" disabled>
+        2. Upload Unmatched to YNAB
+      </button>
+      <button class="btn btn-secondary" style="font-size:11px; padding:6px;" onclick="resetStatus()">
+        Reset Status Columns
+      </button>
+    </div>
+  </div>
+
+  <!-- Activity Console -->
+  <div style="margin-top:10px;">
+    <label>Activity Log</label>
+    <div id="console" class="console">Ready.</div>
+  </div>
+
+  <div style="margin-top:12px; text-align:center;">
+    <a href="#" style="font-size:11px; color:var(--text-secondary); text-decoration:none;" onclick="disconnectYnab()">Disconnect YNAB</a>
+  </div>
+
+  <script>
+    var globalBudgetsData = [];
+    var authPollingInterval = null;
+
+    function log(msg) {
+      var box = document.getElementById('console');
+      var time = new Date().toLocaleTimeString();
+      box.textContent = '[' + time + '] ' + msg + '\n' + box.textContent;
+    }
+
+    function refreshState() {
+      google.script.run
+        .withSuccessHandler(renderState)
+        .withFailureHandler(function(err) {
+          log('Error: ' + err.message);
+        })
+        .apiGetState();
+    }
+
+    function renderState(state) {
+      var badge = document.getElementById('conn-badge');
+      var cardDev = document.getElementById('card-dev-creds');
+      var cardAuth = document.getElementById('card-auth');
+      var cardAccount = document.getElementById('card-account');
+      var cardSync = document.getElementById('card-sync');
+
+      document.getElementById('active-sheet-name').textContent = state.activeSheetName;
+
+      // 0. Check library availability
+      var cardLib = document.getElementById('card-lib-missing');
+      if (state.isLibraryLoaded === false) {
+        badge.className = 'badge badge-offline';
+        badge.textContent = 'Library Missing';
+        cardLib.classList.remove('hidden');
+        cardDev.classList.add('hidden');
+        cardAuth.classList.add('hidden');
+        cardAccount.classList.add('hidden');
+        cardSync.classList.add('hidden');
+        log('Notice: OAuth2 library needs to be linked.');
+        return;
+      } else {
+        cardLib.classList.add('hidden');
+      }
+
+      // 1. Check developer credentials
+      if (!state.hasDeveloperCredentials) {
+        badge.className = 'badge badge-offline';
+        badge.textContent = 'Setup Needed';
+        cardDev.classList.remove('hidden');
+        cardAuth.classList.add('hidden');
+        cardAccount.classList.add('hidden');
+        cardSync.classList.add('hidden');
+        document.getElementById('redirect-uri-display').textContent = state.redirectUri;
+        return;
+      } else {
+        cardDev.classList.add('hidden');
+      }
+
+      // 2. Check user authorization
+      if (!state.isAuthorized) {
+        badge.className = 'badge badge-offline';
+        badge.textContent = 'Disconnected';
+        cardAuth.classList.remove('hidden');
+        cardAccount.classList.add('hidden');
+        cardSync.classList.add('hidden');
+        if (state.authUrl) {
+          document.getElementById('btn-auth-link').href = state.authUrl;
+        }
+        return;
+      } else {
+        badge.className = 'badge badge-online';
+        badge.textContent = 'Connected';
+        cardAuth.classList.add('hidden');
+        cardAccount.classList.remove('hidden');
+        cardSync.classList.remove('hidden');
+      }
+
+      // 3. Render Account Association
+      var btnUnlink = document.getElementById('btn-unlink-account');
+      if (state.linkedAccount) {
+        document.getElementById('linked-account-name').textContent =
+          state.linkedAccount.budgetName + ' > ' + state.linkedAccount.accountName;
+        document.getElementById('btn-match').disabled = false;
+        if (btnUnlink) btnUnlink.classList.remove('hidden');
+        hideAccountPicker();
+      } else {
+        document.getElementById('linked-account-name').textContent = '⚠️ Not linked to any YNAB account';
+        document.getElementById('btn-match').disabled = true;
+        if (btnUnlink) btnUnlink.classList.add('hidden');
+        if (document.getElementById('account-picker').classList.contains('hidden')) {
+          showAccountPicker();
+        }
+      }
+
+      // 4. Render Stats
+      document.getElementById('stat-total').textContent = state.stats.total;
+      document.getElementById('stat-matched').textContent = state.stats.matched;
+      document.getElementById('stat-unmatched').textContent = state.stats.unmatched;
+
+      document.getElementById('btn-upload').disabled = (state.stats.unmatched === 0 || !state.linkedAccount);
+    }
+
+    function saveDevCredentials() {
+      var id = document.getElementById('dev-client-id').value.trim();
+      var sec = document.getElementById('dev-client-secret').value.trim();
+      if (!id || !sec) {
+        alert('Please fill out both Client ID and Client Secret.');
+        return;
+      }
+      log('Saving developer credentials...');
+      google.script.run
+        .withSuccessHandler(function() {
+          log('Developer credentials saved.');
+          refreshState();
+        })
+        .withFailureHandler(function(err) {
+          log('Error: ' + err.message);
+        })
+        .apiSaveDeveloperCredentials(id, sec);
+    }
+
+    function startAuthPoll() {
+      log('OAuth window opened. Waiting for authorization...');
+      if (authPollingInterval) clearInterval(authPollingInterval);
+      var pollAttempts = 0;
+      var MAX_POLLS = 60; // 60 * 2.5s = 150 seconds timeout
+      authPollingInterval = setInterval(function() {
+        pollAttempts++;
+        if (pollAttempts > MAX_POLLS) {
+          clearInterval(authPollingInterval);
+          log('Authorization polling timed out. Click "Connect to YNAB" to try again.');
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(function(state) {
+            if (state.isAuthorized) {
+              clearInterval(authPollingInterval);
+              log('Authorized successfully!');
+              renderState(state);
+            }
+          })
+          .apiGetState();
+      }, 2500);
+    }
+
+    function showAccountPicker() {
+      document.getElementById('account-picker').classList.remove('hidden');
+      document.getElementById('account-display').classList.add('hidden');
+      document.getElementById('btn-change-account').classList.add('hidden');
+      var btnUnlink = document.getElementById('btn-unlink-account');
+      if (btnUnlink) btnUnlink.classList.add('hidden');
+
+      log('Fetching YNAB budgets and accounts...');
+      google.script.run
+        .withSuccessHandler(function(budgets) {
+          globalBudgetsData = budgets;
+          var bSelect = document.getElementById('select-budget');
+          bSelect.innerHTML = '<option value="">-- Choose Budget --</option>';
+          for (var i = 0; i < budgets.length; i++) {
+            bSelect.innerHTML += '<option value="' + budgets[i].id + '">' + budgets[i].name + '</option>';
+          }
+          onBudgetChange();
+        })
+        .withFailureHandler(function(err) {
+          log('Error fetching budgets: ' + err.message);
+        })
+        .apiGetBudgetsAndAccounts();
+    }
+
+    function hideAccountPicker() {
+      document.getElementById('account-picker').classList.add('hidden');
+      document.getElementById('account-display').classList.remove('hidden');
+      document.getElementById('btn-change-account').classList.remove('hidden');
+      var btnUnlink = document.getElementById('btn-unlink-account');
+      var accountText = document.getElementById('linked-account-name').textContent;
+      if (btnUnlink && accountText && !accountText.startsWith('⚠️')) {
+        btnUnlink.classList.remove('hidden');
+      }
+    }
+
+    function unlinkAccount() {
+      if (!confirm('Unlink this sheet tab from YNAB?')) return;
+      log('Unlinking sheet...');
+      google.script.run
+        .withSuccessHandler(function() {
+          log('Sheet unlinked.');
+          refreshState();
+        })
+        .withFailureHandler(function(err) {
+          log('Error: ' + err.message);
+        })
+        .apiUnlinkActiveSheet();
+    }
+
+    function onBudgetChange() {
+      var budgetId = document.getElementById('select-budget').value;
+      var aSelect = document.getElementById('select-account');
+      aSelect.innerHTML = '<option value="">-- Choose Account --</option>';
+
+      if (!budgetId) return;
+      var selectedBudget = globalBudgetsData.find(function(b) { return b.id === budgetId; });
+      if (!selectedBudget) return;
+
+      var accounts = selectedBudget.accounts || [];
+      for (var i = 0; i < accounts.length; i++) {
+        aSelect.innerHTML += '<option value="' + accounts[i].id + '">' + accounts[i].name + ' (' + accounts[i].type + ')</option>';
+      }
+    }
+
+    function saveAccountLink() {
+      var bSelect = document.getElementById('select-budget');
+      var aSelect = document.getElementById('select-account');
+
+      var budgetId = bSelect.value;
+      var budgetName = bSelect.options[bSelect.selectedIndex].text;
+      var accountId = aSelect.value;
+      var accountName = aSelect.options[aSelect.selectedIndex].text;
+
+      if (!budgetId || !accountId) {
+        alert('Please select both a Budget and an Account.');
+        return;
+      }
+
+      log('Linking sheet to ' + budgetName + ' > ' + accountName + '...');
+      google.script.run
+        .withSuccessHandler(function() {
+          log('Sheet successfully linked.');
+          hideAccountPicker();
+          refreshState();
+        })
+        .withFailureHandler(function(err) {
+          log('Link error: ' + err.message);
+        })
+        .apiLinkActiveSheet(budgetId, budgetName, accountId, accountName);
+    }
+
+    function runMatch() {
+      var btn = document.getElementById('btn-match');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Matching...';
+      log('Running Match & Mark pass (clearing old cache)...');
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.textContent = '1. Match Existing Transactions';
+          log('Match finished: ' + res.matchedCount + ' matched in YNAB, ' + res.unmatchedCount + ' ready for upload.');
+          refreshState();
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = '1. Match Existing Transactions';
+          log('Match error: ' + err.message);
+          alert('Error matching: ' + err.message);
+        })
+        .apiRunMatch();
+    }
+
+    function runUpload() {
+      var btn = document.getElementById('btn-upload');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Uploading...';
+      log('Uploading unmatched transactions to YNAB...');
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.textContent = '2. Upload Unmatched to YNAB';
+          log('Upload finished: ' + res.uploadedCount + ' uploaded' + (res.duplicateCount ? (', ' + res.duplicateCount + ' duplicates skipped') : '') + '.');
+          refreshState();
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = '2. Upload Unmatched to YNAB';
+          log('Upload error: ' + err.message);
+          alert('Error uploading: ' + err.message);
+        })
+        .apiRunUpload();
+    }
+
+    function resetStatus() {
+      if (!confirm('Clear all YNAB Status and YNAB ID values in the active sheet?')) return;
+      log('Resetting status columns...');
+      google.script.run
+        .withSuccessHandler(function() {
+          log('Status columns cleared.');
+          refreshState();
+        })
+        .withFailureHandler(function(err) {
+          log('Error: ' + err.message);
+        })
+        .apiResetStatus();
+    }
+
+    function disconnectYnab() {
+      if (!confirm('Disconnect your YNAB account?')) return;
+      google.script.run
+        .withSuccessHandler(function() {
+          log('Disconnected from YNAB.');
+          refreshState();
+        })
+        .apiDisconnect();
+    }
+
+    // Initialize on load
+    refreshState();
+  </script>
+</body>
+</html>
