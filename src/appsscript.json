@@ -16,6 +16,10 @@
     "https://www.googleapis.com/auth/script.external_request",
     "https://www.googleapis.com/auth/script.container.ui"
   ],
+  "urlFetchWhitelist": [
+    "https://api.ynab.com/",
+    "https://app.ynab.com/"
+  ],
   "addOns": {
     "common": {
       "name": "YNAB Sync",

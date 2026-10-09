@@ -36,5 +36,14 @@ if (oauthLib.libraryId !== '1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMu
   process.exit(1);
 }
 
-console.log('✓ Manifest validation passed: OAuth2 library (v' + (oauthLib.version || 'unknown') + ') configured properly.');
+const whitelist = manifest.urlFetchWhitelist || [];
+const requiredUrls = ['https://api.ynab.com/', 'https://app.ynab.com/'];
+for (const url of requiredUrls) {
+  if (!whitelist.includes(url)) {
+    console.error(`❌ Error: Missing '${url}' in urlFetchWhitelist in src/appsscript.json!`);
+    process.exit(1);
+  }
+}
+
+console.log('✓ Manifest validation passed: OAuth2 library (v' + (oauthLib.version || 'unknown') + ') and urlFetchWhitelist configured properly.');
 process.exit(0);
