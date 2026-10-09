@@ -122,6 +122,12 @@ For full technical specifications, data models, and algorithms, see [DESIGN_SPEC
 
 Created and maintained by **Sascha Stoeter** ([@sstoeter](https://github.com/sstoeter)).
 
+## Privacy Policy
+
+For information on how user data and permissions are handled, see [PRIVACY.md](PRIVACY.md).
+
+---
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
