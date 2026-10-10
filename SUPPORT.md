@@ -41,9 +41,9 @@ When sending an email, please include:
 **Solution:**
 - **No.** The add-on uses the strict `spreadsheets.currentonly` scope, which confines access strictly to the active spreadsheet file you are working in.
 
-### Q: How do I disconnect or remove the add-on?
+### Q: How do I log out, disconnect, or remove the add-on?
 **Solution:**
-1. In the sidebar, click **Disconnect YNAB** to delete your stored OAuth tokens.
+1. In the sidebar, click **Log Out** in the top header, or select **Extensions > YNAB Sync > Log Out from YNAB** from the Google Sheets menu to delete your stored OAuth tokens.
 2. In Google Sheets™, go to **Extensions > Add-ons > Manage add-ons** and click **Uninstall**.
 3. You can also revoke access anytime in your Google Account security settings at [https://myaccount.google.com/permissions](https://myaccount.google.com/permissions).
 

@@ -253,7 +253,10 @@
       </svg>
       YNAB Sync
     </div>
-    <span id="conn-badge" class="badge badge-offline">Checking...</span>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span id="conn-badge" class="badge badge-offline">Checking...</span>
+      <button id="btn-logout" class="btn btn-secondary hidden" style="width:auto; padding:2px 8px; font-size:11px; color:var(--danger); border-color:#fad2cf;" onclick="logoutYnab()">Log Out</button>
+    </div>
   </div>
 
   <!-- State 0: Library Missing Card -->
@@ -380,9 +383,7 @@
     <div id="console" class="console">Ready.</div>
   </div>
 
-  <div style="margin-top:12px; text-align:center;">
-    <a href="#" style="font-size:11px; color:var(--text-secondary); text-decoration:none;" onclick="disconnectYnab()">Disconnect YNAB</a>
-  </div>
+
 
   <script>
     var globalBudgetsData = [];
@@ -412,8 +413,16 @@
 
       document.getElementById('active-sheet-name').textContent = state.activeSheetName;
 
-      // 0. Check library availability
       var cardLib = document.getElementById('card-lib-missing');
+      var btnLogout = document.getElementById('btn-logout');
+
+      if (btnLogout) {
+        if (state.isAuthorized) {
+          btnLogout.classList.remove('hidden');
+        } else {
+          btnLogout.classList.add('hidden');
+        }
+      }
       if (state.isLibraryLoaded === false) {
         badge.className = 'badge badge-offline';
         badge.textContent = 'Library Missing';
@@ -678,15 +687,30 @@
         .apiResetStatus();
     }
 
-    function disconnectYnab() {
-      if (!confirm('Disconnect your YNAB account?')) return;
+    function logoutYnab() {
+      if (!confirm('Are you sure you want to log out from YNAB? You will need to reconnect your account before syncing transactions.')) return;
+      var btnLogout = document.getElementById('btn-logout');
+      if (btnLogout) btnLogout.disabled = true;
+      if (authPollingInterval) {
+        clearInterval(authPollingInterval);
+        authPollingInterval = null;
+      }
+      globalBudgetsData = [];
+      log('Logging out from YNAB...');
       google.script.run
         .withSuccessHandler(function() {
-          log('Disconnected from YNAB.');
+          if (btnLogout) btnLogout.disabled = false;
+          log('Successfully logged out from YNAB.');
           refreshState();
+        })
+        .withFailureHandler(function(err) {
+          if (btnLogout) btnLogout.disabled = false;
+          log('Logout error: ' + err.message);
         })
         .apiDisconnect();
     }
+
+    var disconnectYnab = logoutYnab;
 
     // Initialize on load
     refreshState();

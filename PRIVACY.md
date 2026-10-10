@@ -68,7 +68,7 @@ YNAB Sync for Google Sheets' use and transfer to any other app of information re
 
 - **Zero Server Retention:** Because we do not operate external servers, no user data or transaction records are retained by us.
 - **Revoking Access:**
-  - **In Google Sheets:** You can click **Disconnect YNAB** in the Add-on sidebar at any time, which immediately deletes the stored OAuth tokens from your `UserProperties`.
+  - **In Google Sheets:** You can click **Log Out** in the Add-on sidebar or select **Extensions > YNAB Sync > Log Out from YNAB** at any time, which immediately deletes the stored OAuth tokens from your `UserProperties`.
   - **In YNAB:** You can revoke the Add-on's authorization at any time in your [YNAB Account Settings](https://app.ynab.com/settings/developer).
   - **In Google Account:** You can manage or revoke third-party app permissions anytime at [Google Account Permissions](https://myaccount.google.com/permissions).
 - **Uninstalling:** Uninstalling the Add-on removes the script execution from your Google account.

@@ -17,6 +17,8 @@ function onOpen(e) {
       .addItem('1. Match Existing Transactions', 'menuMatchExisting')
       .addItem('2. Upload Unmatched to YNAB', 'menuUploadUnmatched')
       .addItem('Reset Status Columns', 'menuResetStatus')
+      .addSeparator()
+      .addItem('Log Out from YNAB', 'menuLogOut')
       .addToUi();
   }
 
@@ -28,6 +30,8 @@ function onOpen(e) {
       .addItem('1. Match Existing Transactions', 'menuMatchExisting')
       .addItem('2. Upload Unmatched to YNAB', 'menuUploadUnmatched')
       .addItem('Reset Status Columns', 'menuResetStatus')
+      .addSeparator()
+      .addItem('Log Out from YNAB', 'menuLogOut')
       .addToUi();
   } catch (err) {
     // Top-level menu is disallowed in certain Add-on auth modes; safely ignore
@@ -117,6 +121,22 @@ function menuResetStatus() {
     SpreadsheetApp.getActiveSpreadsheet().toast('Status columns reset.', 'YNAB Reset');
   } catch (err) {
     SpreadsheetApp.getUi().alert('Error: ' + err.message);
+  }
+}
+
+/**
+ * Menu action: Log Out from YNAB
+ */
+function menuLogOut() {
+  var ui = SpreadsheetApp.getUi();
+  var resp = ui.alert(
+    'Log Out from YNAB',
+    'Are you sure you want to log out and disconnect your YNAB account? You will need to reconnect before syncing again.',
+    ui.ButtonSet.YES_NO
+  );
+  if (resp === ui.Button.YES) {
+    OAuthManager.disconnect();
+    SpreadsheetApp.getActiveSpreadsheet().toast('Successfully logged out from YNAB.', 'YNAB Sync');
   }
 }
 
@@ -308,6 +328,13 @@ function apiResetStatus() {
 function apiDisconnect() {
   OAuthManager.disconnect();
   return { success: true };
+}
+
+/**
+ * Alias for apiDisconnect to log out.
+ */
+function apiLogOut() {
+  return apiDisconnect();
 }
 
 /**

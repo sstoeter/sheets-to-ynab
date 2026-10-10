@@ -110,6 +110,7 @@ You can also run common actions directly from the Google Sheets menu (**Extensio
 - **1. Match Existing Transactions**: Runs matching in the background and toasts progress.
 - **2. Upload Unmatched to YNAB**: Uploads eligible rows and toasts results.
 - **Reset Status Columns**: Manually clears status badges and re-applies column formatting.
+- **Log Out from YNAB**: Disconnects your account and removes stored OAuth credentials.
 
 ---
 
