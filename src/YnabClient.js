@@ -9,8 +9,11 @@ var YnabClient = (function() {
   /**
    * Helper to make authenticated requests to YNAB.
    */
-  function request(endpoint, options) {
-    var token = OAuthManager.getAccessToken();
+  function request(endpoint, options, customToken) {
+    var token = customToken || AuthManager.getAccessToken();
+    if (!token) {
+      throw new Error('YNAB Personal Access Token is not configured. Please connect in the sidebar.');
+    }
     var opts = options || {};
     var headers = opts.headers || {};
     headers['Authorization'] = 'Bearer ' + token;
@@ -131,10 +134,21 @@ var YnabClient = (function() {
     };
   }
 
+  /**
+   * Validates a Personal Access Token against the YNAB /user endpoint.
+   * @param {string} token
+   * @return {Object} User details
+   */
+  function validateToken(token) {
+    if (!token) throw new Error('Token is required.');
+    return request('/user', { method: 'get' }, token);
+  }
+
   return {
     fetchBudgets: fetchBudgets,
     fetchAccounts: fetchAccounts,
     fetchTransactionsSince: fetchTransactionsSince,
-    postTransactions: postTransactions
+    postTransactions: postTransactions,
+    validateToken: validateToken
   };
 })();

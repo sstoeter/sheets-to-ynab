@@ -1,12 +1,11 @@
 {
   "name": "sheets-to-ynab",
   "version": "1.0.0",
-  "description": "Google Sheets to YNAB synchronization add-on",
+  "description": "Google Sheets to YNAB synchronization using Personal Access Tokens",
   "scripts": {
-    "validate": "node scripts/validate-manifest.js",
-    "push": "node scripts/validate-manifest.js && clasp push -f"
+    "push": "clasp push -f"
   },
-  "keywords": ["ynab", "google-sheets", "apps-script", "oauth2"],
+  "keywords": ["ynab", "google-sheets", "apps-script", "personal-access-token"],
   "author": "Sascha Stoeter <stoeter@gmail.com> (https://github.com/sstoeter)",
   "license": "MIT"
 }

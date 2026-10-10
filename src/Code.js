@@ -7,42 +7,16 @@
  * Standard trigger executed when the spreadsheet is opened.
  */
 function onOpen(e) {
-  var ui = SpreadsheetApp.getUi();
-
-  // Create Add-on menu (Extensions > YNAB Sync)
-  if (ui.createAddonMenu) {
-    ui.createAddonMenu()
-      .addItem('Open Sidebar', 'showSidebar')
-      .addSeparator()
-      .addItem('1. Match Existing Transactions', 'menuMatchExisting')
-      .addItem('2. Upload Unmatched to YNAB', 'menuUploadUnmatched')
-      .addItem('Reset Status Columns', 'menuResetStatus')
-      .addSeparator()
-      .addItem('Log Out from YNAB', 'menuLogOut')
-      .addToUi();
-  }
-
-  // Also try top-level menu if environment permits
-  try {
-    ui.createMenu('YNAB Sync')
-      .addItem('Open Sidebar', 'showSidebar')
-      .addSeparator()
-      .addItem('1. Match Existing Transactions', 'menuMatchExisting')
-      .addItem('2. Upload Unmatched to YNAB', 'menuUploadUnmatched')
-      .addItem('Reset Status Columns', 'menuResetStatus')
-      .addSeparator()
-      .addItem('Log Out from YNAB', 'menuLogOut')
-      .addToUi();
-  } catch (err) {
-    // Top-level menu is disallowed in certain Add-on auth modes; safely ignore
-  }
-}
-
-/**
- * Standard trigger executed when the Add-on is installed.
- */
-function onInstall(e) {
-  onOpen(e);
+  SpreadsheetApp.getUi()
+    .createMenu('YNAB Sync')
+    .addItem('Open Sidebar', 'showSidebar')
+    .addSeparator()
+    .addItem('1. Match Existing Transactions', 'menuMatchExisting')
+    .addItem('2. Upload Unmatched to YNAB', 'menuUploadUnmatched')
+    .addItem('Reset Status Columns', 'menuResetStatus')
+    .addSeparator()
+    .addItem('Log Out from YNAB', 'menuLogOut')
+    .addToUi();
 }
 
 /**
@@ -53,33 +27,6 @@ function showSidebar() {
     .setTitle('YNAB Sync')
     .setWidth(340);
   SpreadsheetApp.getUi().showSidebar(html);
-}
-
-/**
- * Prompt for developer to set Client ID and Client Secret in Script Properties.
- */
-function promptDeveloperCredentials() {
-  var ui = SpreadsheetApp.getUi();
-  var redirectUri = OAuthManager.getRedirectUri();
-
-  var promptText = 'To configure the Add-on, register an application at:\n' +
-                   'https://app.ynab.com/settings/developer\n\n' +
-                   'With Redirect URI:\n' + redirectUri + '\n\n' +
-                   'Enter your YNAB Client ID:';
-  var resId = ui.prompt('Configure YNAB OAuth', promptText, ui.ButtonSet.OK_CANCEL);
-  if (resId.getSelectedButton() !== ui.Button.OK) return;
-  var clientId = resId.getResponseText().trim();
-
-  var resSecret = ui.prompt('Configure YNAB OAuth', 'Enter your YNAB Client Secret:', ui.ButtonSet.OK_CANCEL);
-  if (resSecret.getSelectedButton() !== ui.Button.OK) return;
-  var clientSecret = resSecret.getResponseText().trim();
-
-  if (clientId && clientSecret) {
-    OAuthManager.setDeveloperCredentials(clientId, clientSecret);
-    ui.alert('Success', 'Developer credentials saved successfully.', ui.ButtonSet.OK);
-  } else {
-    ui.alert('Error', 'Client ID and Secret cannot be blank.', ui.ButtonSet.OK);
-  }
 }
 
 /**
@@ -131,12 +78,12 @@ function menuLogOut() {
   var ui = SpreadsheetApp.getUi();
   var resp = ui.alert(
     'Log Out from YNAB',
-    'Are you sure you want to log out and disconnect your YNAB account? You will need to reconnect before syncing again.',
+    'Are you sure you want to log out and disconnect your YNAB account? You will need to re-enter your Personal Access Token before syncing again.',
     ui.ButtonSet.YES_NO
   );
   if (resp === ui.Button.YES) {
-    OAuthManager.disconnect();
-    SpreadsheetApp.getActiveSpreadsheet().toast('Successfully logged out from YNAB.', 'YNAB Sync');
+    AuthManager.disconnect();
+    SpreadsheetApp.getActiveSpreadsheet().toast('Successfully disconnected from YNAB.', 'YNAB Sync');
   }
 }
 
@@ -150,11 +97,8 @@ function menuLogOut() {
 function apiGetState() {
   var sheet = SpreadsheetApp.getActiveSheet();
   var sheetName = sheet ? sheet.getName() : 'Unknown';
-  var libLoaded = OAuthManager.isLibraryLoaded();
-  var hasDev = OAuthManager.hasDeveloperCredentials();
-  var isAuth = libLoaded && OAuthManager.isAuthorized();
-  var redirectUri = OAuthManager.getRedirectUri();
-  var authUrl = (libLoaded && !isAuth && hasDev) ? OAuthManager.getAuthorizationUrl() : null;
+  var isAuth = AuthManager.isAuthorized();
+  var maskedToken = AuthManager.getMaskedToken();
 
   var linked = MetadataManager.getLinkedAccount(sheet);
   var stats = { total: 0, matched: 0, unmatched: 0 };
@@ -178,11 +122,8 @@ function apiGetState() {
   }
 
   return {
-    isLibraryLoaded: libLoaded,
-    hasDeveloperCredentials: hasDev,
     isAuthorized: isAuth,
-    redirectUri: redirectUri,
-    authUrl: authUrl,
+    maskedToken: maskedToken,
     activeSheetName: sheetName,
     linkedAccount: linked,
     stats: stats
@@ -323,10 +264,10 @@ function apiResetStatus() {
 }
 
 /**
- * Disconnects OAuth authorization.
+ * Disconnects YNAB authorization.
  */
 function apiDisconnect() {
-  OAuthManager.disconnect();
+  AuthManager.disconnect();
   return { success: true };
 }
 
@@ -338,9 +279,21 @@ function apiLogOut() {
 }
 
 /**
- * Saves developer credentials from the UI.
+ * Validates and saves a Personal Access Token into UserProperties.
+ * @param {string} token
  */
-function apiSaveDeveloperCredentials(clientId, clientSecret) {
-  OAuthManager.setDeveloperCredentials(clientId, clientSecret);
+function apiSaveToken(token) {
+  if (!token || !token.trim()) {
+    throw new Error('Please enter a valid Personal Access Token.');
+  }
+  var trimmed = token.trim();
+  // Strip optional "Bearer " prefix if included
+  if (trimmed.toLowerCase().indexOf('bearer ') === 0) {
+    trimmed = trimmed.substring(7).trim();
+  }
+  // Validate token against YNAB API before saving
+  YnabClient.validateToken(trimmed);
+  // Persist token in private UserProperties
+  AuthManager.setAccessToken(trimmed);
   return { success: true };
 }

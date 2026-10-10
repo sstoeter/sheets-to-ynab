@@ -7,33 +7,33 @@ This document specifies the technical design, data structures, and algorithms fo
 The solution enables users to:
 1. Maintain imported bank transactions in a Google Sheet populated automatically via formulas from raw CSV bank exports.
 2. Link any sheet/tab to a specific YNAB Budget and Account via an interactive sidebar.
-3. Authenticate with YNAB seamlessly via **OAuth 2.0** using a centralized **Google Workspace Editor Add-on** architecture (zero developer portal configuration for end-users).
-4. Safely handle dynamic formula recalculations by idempotently clearing and re-matching status columns during every sync.
-5. Run a **Match & Mark** pass to detect and label transactions already present in YNAB, properly handling ambiguous multiple matches with a 1-to-1 consumption pool.
-6. Upload remaining new transactions to YNAB with deterministic deduplication (`import_id`) and milliunit amount conversions.
-7. Distribute the solution to other users via the **Google Workspace Marketplace** (Public or Unlisted Editor Add-on).
+3. Authenticate with YNAB securely using **Personal Access Tokens (PAT)** persisted in private Google `UserProperties` (zero developer app registration, zero redirect URIs).
+4. Easily share or duplicate spreadsheets among family members with independent YNAB accounts.
+5. Safely handle dynamic formula recalculations by idempotently clearing and re-matching status columns during every sync.
+6. Run a **Match & Mark** pass to detect and label transactions already present in YNAB, properly handling ambiguous multiple matches with a 1-to-1 consumption pool.
+7. Upload remaining new transactions to YNAB with deterministic deduplication (`import_id`) and milliunit amount conversions.
 
 ---
 
 ## 2. Architecture & Distribution Model
 
-### 2.1 Distribution Strategy: Google Workspace Editor Add-on
+### 2.1 Distribution Strategy: Container-Bound Script with Personal Access Tokens
 
-The project is architected as a **Google Workspace Editor Add-on for Google Sheets**:
+The project is architected as a lightweight, container-bound **Google Sheets Apps Script**:
 
 ```
 +---------------------------------------------------------------------------------------+
-|                 Google Workspace Editor Add-on Architecture (Model B)                 |
+|                 Container-Bound Script with Personal Access Tokens                    |
 |                                                                                       |
-|  * Single, fixed Script ID for all users.                                             |
-|  * A single YNAB OAuth Application registered by the developer:                       |
-|      Redirect URI: https://script.google.com/macros/d/{ADDON_SCRIPT_ID}/usercallback  |
-|  * Client ID & Secret configured in the Add-on's Script Properties.                   |
-|  * End-User Experience: ZERO setup friction.                                          |
-|      1. User installs Add-on from Google Workspace Marketplace (or domain/test link). |
-|      2. Opens any Google Sheet -> Extensions > YNAB Sync.                             |
-|      3. Clicks "Connect to YNAB" -> Logs in & grants permission.                      |
-|      4. Ready to sync immediately.                                                    |
+|  * Bound directly to Google Sheets with native custom menu: "YNAB Sync".              |
+|  * Authentication via YNAB Personal Access Token (PAT):                               |
+|      - Generated once in YNAB Settings > Developer Settings.                          |
+|      - Saved into private UserProperties (never shared across users).                 |
+|  * Family / Multi-Sheet Experience:                                                   |
+|      1. User makes a copy of the Google Sheet (File > Make a copy).                   |
+|      2. Opens menu: YNAB Sync > Open Sidebar.                                         |
+|      3. Pastes their personal YNAB token.                                             |
+|      4. Ready to link budget & sync immediately.                                      |
 +---------------------------------------------------------------------------------------+
 ```
 
@@ -50,11 +50,11 @@ The project is architected as a **Google Workspace Editor Add-on for Google Shee
 |                                                           +-----------------------+   |
 |                                                                       |               |
 |                                                                       |               |
-|                             Editor Add-on Engine                      v               |
+|                             Container-Bound Sync Engine               v               |
 |   +-------------------------------------------------------------------------------+   |
 |   |  * Formula Lifecycle Manager: Clears & resets status columns on fresh sync    |   |
 |   |  * Account Binder: DeveloperMetadata per Sheet (Budget ID & Account ID)       |   |
-|   |  * OAuth 2.0 Client: Auth Code Grant + Automated Refresh Token handling       |   |
+|   |  * Auth Manager: Bearer Personal Access Token stored in UserProperties        |   |
 |   |  * Transaction Matcher: Consumption pool for ambiguous duplicates             |   |
 |   |  * Batch Uploader: Milliunit conversion & deterministic import_id             |   |
 |   +-------------------------------------------------------------------------------+   |

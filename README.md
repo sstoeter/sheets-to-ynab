@@ -1,17 +1,18 @@
 # Google Sheets to YNAB Synchronizer
 
-A Google Workspace Editor Add-on for Google Sheets that synchronizes bank transactions directly with [YNAB (You Need A Budget)](https://www.ynab.com/) using the official YNAB REST API and OAuth 2.0.
+A lightweight Google Sheets script that synchronizes bank transactions directly with [YNAB (You Need A Budget)](https://www.ynab.com/) using the official YNAB REST API and **Personal Access Tokens (PAT)**.
 
 ---
 
 ## Features
 
-- **OAuth 2.0 Centralized Model**: Seamless connection using YNAB OAuth 2.0 Authorization Code Grant with automatic refresh token handling.
-- **Formula-Driven Friendly**: Safely handles formula-populated sheets (e.g. `=FILTER(...)` or `=ARRAYFORMULA(...)` referencing raw CSV exports). Status columns are treated as an ephemeral cache and refreshed idempotently on every sync.
+- **Personal Access Token (PAT) Authentication**: Zero developer apps, zero redirect URI whitelists, and no Google OAuth session conflicts.
+- **Family & Multi-Sheet Friendly**: Anyone in your family can duplicate the spreadsheet, enter their own YNAB token once in the sidebar, and start syncing immediately. Tokens are stored in private Google `UserProperties`.
+- **Formula-Driven Friendly**: Safely handles formula-populated sheets (e.g. `=FILTER(...)` or `=ARRAYFORMULA(...)` referencing raw bank CSV exports). Status columns are refreshed idempotently on every sync.
 - **Ambiguous Duplicate Protection**: Uses a 1-to-1 consumption pool so identical transactions on the same day match accurately without double-linking.
 - **Milliunit Conversion**: Automatically converts human-readable decimals (e.g. `42.13`) into YNAB integer milliunits (`-42130`).
 - **Deduplication Key**: Generates deterministic `import_id` values (`YNAB:[amount]:[date]:[occurrence]`) to protect against duplicate uploads.
-- **Tab-to-Account Binding**: Links each sheet tab to any YNAB Budget and Account via Google Sheets Developer Metadata.
+- **Tab-to-Account Binding**: Links each sheet tab independently to any YNAB Budget and Account via Google Sheets Developer Metadata.
 
 ---
 
@@ -26,11 +27,11 @@ The target sheet requires the following headers in row 1 (order independent):
 | `Memo` | String (Optional) | `Groceries` | Notes or bank description |
 | `Outflow` | Number | `42.13` or `0` | Outflow expense amount (**numeric only**) |
 | `Inflow` | Number | `1250.00` or `0` | Inflow deposit amount (**numeric only**) |
-| `YNAB Status` | Managed | `Matched`, `Unmatched`, `Uploaded`, `Duplicate` | Auto-created, semantic color badges, soft edit protection |
-| `YNAB ID` | Managed | `45f6a9e2-...` | Auto-created, monospace 9pt, soft edit protection |
+| `YNAB Status` | Managed | `Matched`, `Unmatched`, `Uploaded`, `Duplicate` | Auto-created, semantic color badges |
+| `YNAB ID` | Managed | `45f6a9e2-...` | Auto-created, monospace 9pt |
 
 > [!NOTE]
-> If `YNAB Status` and `YNAB ID` are not present in row 1, the add-on appends and formats them automatically on first run.
+> If `YNAB Status` and `YNAB ID` are not present in row 1, the script appends and formats them automatically on first run.
 
 ### Status Badge Legend
 
@@ -41,97 +42,73 @@ The target sheet requires the following headers in row 1 (order independent):
 
 ---
 
-## Deployment & Setup
+## Quick Setup Guide
 
-### 1. Prerequisites
-- [Google clasp](https://github.com/google/clasp) installed (`clasp -v`)
-- Google Account with access to Google Sheets & Apps Script
-- YNAB Account
+### 1. Generate a Personal Access Token in YNAB
+1. Log into YNAB and go to [Account Settings > Developer Settings](https://app.ynab.com/settings/developer).
+2. Under **Personal Access Tokens**, click **New Token**.
+3. Copy your token (you will only see it once).
 
-### 2. Login to Clasp
-```bash
-clasp login
-```
-
-### 3. Create or Link an Apps Script Project
-If creating a new standalone Apps Script project:
-```bash
-clasp create --type sheets --title "YNAB Sync Add-on" --rootDir ./src
-```
-Or if linking to an existing script project, edit `.clasp.json`:
-```json
-{
-  "scriptId": "YOUR_APPS_SCRIPT_PROJECT_ID",
-  "rootDir": "./src"
-}
-```
-
-### 4. Push Code to Apps Script (With Safeguards)
-```bash
-npm run push
-```
-*(This automatically runs `npm run validate` to verify manifest integrity and OAuth2 library dependencies before executing `clasp push -f`)*.
-
-### 5. Add-on OAuth Configuration
-1. Open the project in the Apps Script editor:
-   ```bash
-   clasp open-script
-   ```
-2. Note your Apps Script project ID from Project Settings.
-3. In [YNAB Developer Settings](https://app.ynab.com/settings/developer), click **New Application**:
-   - **Name**: `YNAB Sheets Sync`
-   - **Redirect URI**:
-     ```
-     https://script.google.com/macros/d/{YOUR_SCRIPT_ID}/usercallback
-     ```
-4. Copy the generated **Client ID** and **Client Secret**.
-5. Save the credentials in your script's **Project Settings > Script Properties** (as `YNAB_CLIENT_ID` and `YNAB_CLIENT_SECRET`), or enter them directly in the sidebar on first run.
+### 2. Connect Your Google Sheet
+1. Open your Google Sheet.
+2. In the top menu, click **YNAB Sync > Open Sidebar**.
+3. In the sidebar, paste your **Personal Access Token** and click **Connect to YNAB**.
+4. Select your **Budget** and **Account**, then click **Link to Sheet**.
 
 ---
 
-## Usage Workflow
+## Daily Usage Workflow
 
-1. Open your Google Sheet containing bank transactions.
-2. Go to **Extensions > YNAB Sync > Open Sidebar** (or top-level **YNAB Sync** menu).
-3. Click **Connect to YNAB** to authorize (uses secure OAuth 2.0 with automated token refresh).
-4. Select your target **Budget** and **Account** and click **Link to Sheet** (links can be changed or unlinked anytime).
-5. Click **1. Match Existing Transactions**:
-   - Wipes old status cache (safe for dynamic formula-driven data).
+1. Paste or populate your bank transactions in the sheet.
+2. Click **1. Match Existing Transactions**:
+   - Wipes old status cache (safe for dynamic formulas).
    - Matches rows against current YNAB records using a 1-to-1 consumption pool.
    - Shows live counts: *Matched in YNAB* vs *Unmatched*.
-6. Click **2. Upload Unmatched to YNAB**:
-   - Uploads remaining rows with deterministic `import_id` deduplication keys.
-   - Marks rows as `Uploaded` with their new YNAB IDs.
+3. Click **2. Upload Unmatched to YNAB**:
+   - Uploads new rows with deterministic `import_id` deduplication keys.
+   - Marks rows as `Uploaded` with their newly assigned YNAB IDs.
 
 ### Menu Shortcuts
 
-You can also run common actions directly from the Google Sheets menu (**Extensions > YNAB Sync**):
+You can also run common actions directly from the Google Sheets menu (**YNAB Sync**):
 - **Open Sidebar**: Launches the interactive control panel.
 - **1. Match Existing Transactions**: Runs matching in the background and toasts progress.
 - **2. Upload Unmatched to YNAB**: Uploads eligible rows and toasts results.
 - **Reset Status Columns**: Manually clears status badges and re-applies column formatting.
-- **Log Out from YNAB**: Disconnects your account and removes stored OAuth credentials.
+- **Log Out from YNAB**: Disconnects your account and removes stored token.
 
 ---
 
-## Architecture Specification
-For full technical specifications, data models, and algorithms, see [DESIGN_SPECIFICATION.md](file:///Users/sascha/Documents/Antigravity/sheets-to-ynab/DESIGN_SPECIFICATION.md).
+## Sharing with Family Members
+
+1. Family members simply make a copy of the Google Sheet: **File > Make a copy**.
+2. They open the copy, click **YNAB Sync > Open Sidebar**, and accept the one-time Google permission prompt.
+3. They paste their own YNAB Personal Access Token into the sidebar.
+4. **Done!** No developer setups, no redirect URIs, and no shared tokens.
 
 ---
 
-## Author & Support
+## Developer Deployment (`clasp`)
 
-Created and maintained by **Sascha Stoeter** ([@sstoeter](https://github.com/sstoeter)).
-- **Support & Inquiries:** [SUPPORT.md](SUPPORT.md) or email [stoeter@gmail.com](mailto:stoeter@gmail.com)
-- **Privacy Policy:** [PRIVACY.md](PRIVACY.md)
-- **Terms of Service:** [TERMS.md](TERMS.md)
+To deploy updates to a sheet's bound script from this repository:
+
+1. In `.clasp.json`, specify your bound script ID:
+   ```json
+   {
+     "scriptId": "YOUR_APPS_SCRIPT_ID",
+     "rootDir": "src"
+   }
+   ```
+2. Push all files:
+   ```bash
+   npx @google/clasp push -f
+   ```
 
 ---
 
-## License & Trademarks
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 *Google Sheets™ is a trademark of Google LLC.*  
 *YNAB® is a registered trademark of You Need A Budget LLC.*
-
