@@ -1,14 +1,14 @@
-# Privacy Policy for YNAB Sync for Google Sheets
+# Privacy Policy for YNAB Sync for Google Sheets™
 
-**Last Updated:** October 9, 2026
+**Last Updated:** October 10, 2026
 
-This Privacy Policy explains how **YNAB Sync for Google Sheets** ("the Add-on", "we", "our") handles your data. We are committed to protecting your privacy and ensuring transparency about how your information is accessed and processed.
+This Privacy Policy explains how **YNAB Sync for Google Sheets™** ("the Add-on", "we", "our") handles your data. We are committed to protecting your privacy and ensuring transparency about how your information is accessed and processed.
 
 ---
 
 ## 1. Overview and Architecture
 
-**YNAB Sync for Google Sheets** is a client-side Google Workspace Editor Add-on built using Google Apps Script. 
+**YNAB Sync for Google Sheets™** is a client-side Google Workspace Editor Add-on built using Google Apps Script. 
 
 - **No Intermediate Servers:** The Add-on does not operate any external web servers, databases, or cloud backends.
 - **Direct Communication:** All data processing occurs entirely within your Google account's Google Apps Script runtime and communicates directly between your Google Sheets document and the official YNAB REST API (`https://api.ynab.com`).
@@ -95,3 +95,9 @@ If you have any questions, concerns, or requests regarding this Privacy Policy, 
 - **Developer:** Sascha Stoeter
 - **Email:** stoeter@gmail.com
 - **Repository:** [https://github.com/sstoeter/sheets-to-ynab](https://github.com/sstoeter/sheets-to-ynab)
+
+---
+
+*Google Sheets™ is a trademark of Google LLC.*
+*YNAB® is a registered trademark of You Need A Budget LLC.*
+

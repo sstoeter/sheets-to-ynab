@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | YNAB Sync for Google Sheets™</title>
+  <meta name="description" content="Privacy Policy for YNAB Sync for Google Sheets™.">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+      --border: #334155;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .tagline {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .nav-links a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+    .nav-links a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+    }
+    .card h2 {
+      font-size: 1.3rem;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+    .card h2:first-child { margin-top: 0; }
+    .card h3 {
+      font-size: 1.05rem;
+      margin-top: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+    .card p, .card ul {
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .card ul { margin-left: 1.5rem; }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Privacy Policy</h1>
+    <p class="tagline">YNAB Sync for Google Sheets™ &bull; Last Updated: October 10, 2026</p>
+    <nav class="nav-links">
+      <a href="index.html">Overview & Developer</a>
+      <a href="support.html">User Support & Contact</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <p>This Privacy Policy explains how <strong>YNAB Sync for Google Sheets™</strong> ("the Add-on", "we", "our") handles your data. We are committed to protecting your privacy and ensuring transparency about how your information is accessed and processed.</p>
+
+      <h2>1. Overview and Architecture</h2>
+      <p><strong>YNAB Sync for Google Sheets™</strong> is a client-side Google Workspace Editor Add-on built using Google Apps Script.</p>
+      <ul>
+        <li><strong>No Intermediate Servers:</strong> The Add-on does not operate any external web servers, databases, or cloud backends.</li>
+        <li><strong>Direct Communication:</strong> All data processing occurs entirely within your Google account's Google Apps Script runtime and communicates directly between your Google Sheets™ document and the official YNAB REST API (<code>https://api.ynab.com</code>).</li>
+        <li><strong>No Third-Party Analytics or Tracking:</strong> We do not track user behavior, inject third-party analytics scripts, or collect telemetry of any kind.</li>
+      </ul>
+
+      <h2>2. Information Accessed and Processed</h2>
+      <h3>A. Google Sheets™ Data</h3>
+      <p><strong>Scope Used:</strong> <code>https://www.googleapis.com/auth/spreadsheets.currentonly</code></p>
+      <p>The Add-on only accesses the active Google Sheets™ spreadsheet you explicitly open the Add-on in. It reads transaction rows (Date, Payee, Memo, Outflow, Inflow) and writes status indicators (YNAB Status, YNAB ID). It cannot access other files in your Google Drive.</p>
+
+      <h3>B. YNAB Account Data</h3>
+      <p>When you authorize via OAuth 2.0, the Add-on requests access to your YNAB budgets, accounts, and transactions solely to fetch accounts, match transactions to avoid duplicates, and upload new transactions.</p>
+
+      <h3>C. Authentication Credentials & Metadata</h3>
+      <p>OAuth tokens are stored exclusively in your Google account's secure <code>UserProperties</code> store. They are never sent to or visible to the developer or third parties.</p>
+
+      <h2>3. How We Use Your Information</h2>
+      <p>Data accessed is used solely for synchronizing bank transaction rows between your spreadsheet and YNAB. We do not use your personal or financial data for advertising, profiling, or training machine learning models.</p>
+
+      <h2>4. Data Sharing and Disclosure</h2>
+      <ul>
+        <li><strong>No Sale of Data:</strong> We never sell, rent, or trade your data.</li>
+        <li><strong>No Third-Party Sharing:</strong> Your data moves strictly between Google Sheets™ and YNAB's API.</li>
+      </ul>
+
+      <h2>5. Google API Services User Data Policy Compliance</h2>
+      <p>YNAB Sync for Google Sheets™ adherence to the <a href="https://developers.google.com/terms/api-services-user-data-policy" style="color: var(--accent);" target="_blank" rel="noopener">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+
+      <h2>6. Contact Us</h2>
+      <p>If you have questions regarding this Privacy Policy, please contact developer Sascha Stoeter at <a href="mailto:stoeter@gmail.com" style="color: var(--accent);">stoeter@gmail.com</a>.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Sascha Stoeter. All rights reserved.</p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;">
+      Google Sheets™ is a trademark of Google LLC.<br>
+      YNAB® is a registered trademark of You Need A Budget LLC.
+    </p>
+  </footer>
+
+</body>
+</html>

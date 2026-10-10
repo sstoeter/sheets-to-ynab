@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Support | YNAB Sync for Google Sheets™</title>
+  <meta name="description" content="Official user support, contact details, and troubleshooting guide for YNAB Sync for Google Sheets™.">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --border: #334155;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.75rem;
+    }
+    .tagline {
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      max-width: 650px;
+      margin: 0 auto 1.5rem;
+    }
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .nav-links a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+    .nav-links a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+    }
+    .card h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.75rem;
+      color: var(--accent);
+    }
+    .contact-box {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      text-align: center;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      margin-top: 1rem;
+      transition: background 0.2s ease;
+    }
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+    .faq-item {
+      margin-bottom: 1.25rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .faq-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .faq-item h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
+      color: var(--text-main);
+    }
+    .faq-item p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2rem;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>User Support & Help Center</h1>
+    <p class="tagline">Assistance, FAQs, and contact information for <strong>YNAB Sync for Google Sheets™</strong>.</p>
+    <nav class="nav-links">
+      <a href="index.html">Overview & Developer</a>
+      <a href="support.html">User Support & Contact</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+    </nav>
+  </header>
+
+  <main class="container">
+
+    <section class="card">
+      <h2>Contact Developer Support</h2>
+      <p>Have questions, encountered an issue, or need help setting up the add-on? We're here to help! Non-technical users do not need to register on GitHub or submit bug tickets — simply send an email directly to developer support.</p>
+      
+      <div class="contact-box">
+        <p style="font-size: 1.1rem; color: var(--text-main);"><strong>Direct Support Channel:</strong></p>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Sascha Stoeter (Developer)</p>
+        <p style="font-size: 1.25rem; font-weight: 600; color: var(--accent); margin-top: 0.5rem;">stoeter@gmail.com</p>
+        <a href="mailto:stoeter@gmail.com?subject=YNAB%20Sync%20for%20Google%20Sheets%20Support%20Request" class="btn">Send Support Email</a>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.75rem;">Expected response time: within 24 to 48 business hours.</p>
+      </div>
+
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+        <strong>Helpful details to include:</strong> A description of what you were doing, any error messages shown in the sidebar or toast notification, and your browser/operating system. <em>Never send sensitive bank credentials, account passwords, or API secrets in emails.</em>
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Frequently Asked Questions</h2>
+      
+      <div class="faq-item">
+        <h3>How do I authorize the add-on in Google Sheets™?</h3>
+        <p>In Google Sheets™, open <strong>Extensions > YNAB Sync > Open Sidebar</strong>. If prompted, grant authorization for the script to access the current document. In the sidebar, click <strong>Connect to YNAB</strong> and authorize access to your budget data.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Why are some transactions marked as "Duplicate"?</h3>
+        <p>The add-on creates deterministic import IDs based on transaction date, amount, and occurrence to prevent double imports. If YNAB already received that transaction, it safely flags it as duplicate rather than creating a duplicate entry in your budget.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Does the add-on store any of my bank or financial records?</h3>
+        <p>No. The add-on is entirely serverless and runs client-side inside your Google Apps Script environment. All API requests travel directly between Google Sheets™ and YNAB's official servers.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>How do I uninstall or revoke permissions?</h3>
+        <p>Click <strong>Disconnect YNAB</strong> inside the sidebar, then go to <strong>Extensions > Add-ons > Manage add-ons</strong> to uninstall. You can also revoke OAuth grants at any time from your Google Account permissions page.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Sascha Stoeter. All rights reserved.</p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;">
+      Google Sheets™ is a trademark of Google LLC.<br>
+      YNAB® and "You Need A Budget" are registered trademarks of You Need A Budget LLC.<br>
+      This application is independently developed and not affiliated with or endorsed by Google LLC or You Need A Budget LLC.
+    </p>
+  </footer>
+
+</body>
+</html>

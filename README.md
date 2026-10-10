@@ -118,16 +118,19 @@ For full technical specifications, data models, and algorithms, see [DESIGN_SPEC
 
 ---
 
-## Author
+## Author & Support
 
 Created and maintained by **Sascha Stoeter** ([@sstoeter](https://github.com/sstoeter)).
-
-## Privacy Policy
-
-For information on how user data and permissions are handled, see [PRIVACY.md](PRIVACY.md).
+- **Support & Inquiries:** [SUPPORT.md](SUPPORT.md) or email [stoeter@gmail.com](mailto:stoeter@gmail.com)
+- **Privacy Policy:** [PRIVACY.md](PRIVACY.md)
+- **Terms of Service:** [TERMS.md](TERMS.md)
 
 ---
 
-## License
+## License & Trademarks
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+*Google Sheets™ is a trademark of Google LLC.*  
+*YNAB® is a registered trademark of You Need A Budget LLC.*
+
