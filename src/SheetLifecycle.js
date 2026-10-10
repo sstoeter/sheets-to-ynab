@@ -73,19 +73,44 @@ var SheetLifecycle = (function() {
    */
   function formatIsoDate(dateVal, timeZone) {
     if (!dateVal) return '';
-    var tz = timeZone || 'UTC';
+
+    // If Date object: extract calendar day directly to prevent timezone shift
     if (Object.prototype.toString.call(dateVal) === '[object Date]') {
       if (isNaN(dateVal.getTime())) return '';
-      return Utilities.formatDate(dateVal, tz, 'yyyy-MM-dd');
+      var y = dateVal.getFullYear();
+      var m = ('0' + (dateVal.getMonth() + 1)).slice(-2);
+      var d = ('0' + dateVal.getDate()).slice(-2);
+      return y + '-' + m + '-' + d;
     }
+
     var str = String(dateVal).trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
       return str;
     }
-    // Attempt parse if date object representation was passed as string
+
+    // Swiss/German format: DD.MM.YYYY
+    var ddmmyyyy = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (ddmmyyyy) {
+      return ddmmyyyy[3] + '-' + ('0' + ddmmyyyy[2]).slice(-2) + '-' + ('0' + ddmmyyyy[1]).slice(-2);
+    }
+
+    // Slash format: DD/MM/YYYY or YYYY/MM/DD
+    var yyyymmdd = str.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+    if (yyyymmdd) {
+      return yyyymmdd[1] + '-' + ('0' + yyyymmdd[2]).slice(-2) + '-' + ('0' + yyyymmdd[3]).slice(-2);
+    }
+    var slashDdmmyyyy = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashDdmmyyyy) {
+      return slashDdmmyyyy[3] + '-' + ('0' + slashDdmmyyyy[2]).slice(-2) + '-' + ('0' + slashDdmmyyyy[1]).slice(-2);
+    }
+
+    // Attempt parse if date string
     var parsed = new Date(str);
     if (!isNaN(parsed.getTime())) {
-      return Utilities.formatDate(parsed, tz, 'yyyy-MM-dd');
+      var py = parsed.getFullYear();
+      var pm = ('0' + (parsed.getMonth() + 1)).slice(-2);
+      var pd = ('0' + parsed.getDate()).slice(-2);
+      return py + '-' + pm + '-' + pd;
     }
     return '';
   }
@@ -169,8 +194,8 @@ var SheetLifecycle = (function() {
         throw new Error('Row ' + rowNum + ' has an invalid Date format. ISO 8601 (YYYY-MM-DD) is required.');
       }
 
-      var outflowNum = parseAmount(rawOutflow);
-      var inflowNum = parseAmount(rawInflow);
+      var outflowNum = Math.abs(parseAmount(rawOutflow));
+      var inflowNum = Math.abs(parseAmount(rawInflow));
 
       // Milliunit calculation: Outflow is negative, Inflow is positive
       var milliunits = Math.round((inflowNum - outflowNum) * 1000);

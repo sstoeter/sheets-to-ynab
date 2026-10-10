@@ -2,7 +2,7 @@
  * Matcher.js
  * Implements transaction matching with a 1-to-1 consumption pool to handle ambiguous duplicates.
  * Features German/European umlaut transliteration, bank delimiter parsing, token set overlap,
- * and fuzzy substring matching.
+ * fuzzy substring matching, and multi-day clearing window matching (+/- 4 days).
  */
 
 var Matcher = (function() {
@@ -145,69 +145,91 @@ var Matcher = (function() {
   }
 
   /**
-   * Builds an in-memory consumption pool of YNAB transactions.
-   * Key: {date}_{milliunits} -> Array<ynabTransaction>
+   * Calculates absolute difference in calendar days between two YYYY-MM-DD strings.
+   *
+   * @param {string} d1Str
+   * @param {string} d2Str
+   * @return {number}
    */
-  function buildConsumptionPool(ynabTransactions) {
-    var pool = {};
-    for (var i = 0; i < ynabTransactions.length; i++) {
-      var tx = ynabTransactions[i];
-      if (tx.deleted) continue;
-
-      var key = tx.date + '_' + tx.amount;
-      if (!pool[key]) {
-        pool[key] = [];
-      }
-      pool[key].push(tx);
-    }
-    return pool;
+  function getDateDiffDays(d1Str, d2Str) {
+    if (!d1Str || !d2Str) return 999;
+    var p1 = d1Str.split('-');
+    var p2 = d2Str.split('-');
+    var t1 = Date.UTC(parseInt(p1[0], 10), parseInt(p1[1], 10) - 1, parseInt(p1[2], 10));
+    var t2 = Date.UTC(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10));
+    return Math.round(Math.abs(t1 - t2) / (1000 * 60 * 60 * 24));
   }
 
   /**
    * Matches sheet transactions against YNAB transactions using 1-to-1 consumption.
+   * Groups candidates by exact milliunit amount, evaluating date distance (+/- 4 days)
+   * and fuzzy payee similarity.
    *
    * @param {Array<Object>} sheetTransactions
    * @param {Array<Object>} ynabTransactions
    * @return {Object} {
    *   matchedCount: number,
    *   unmatchedCount: number,
-   *   updates: Array<{ rowNum, status, ynabId }>
+   *   updates: Array<{ rowNum, status, ynabId }>,
+   *   details: Array<string>
    * }
    */
   function matchSheetWithYnab(sheetTransactions, ynabTransactions) {
-    var pool = buildConsumptionPool(ynabTransactions);
+    // Build pool grouped by exact milliunit amount
+    var pool = {};
+    for (var y = 0; y < ynabTransactions.length; y++) {
+      var tx = ynabTransactions[y];
+      if (tx.deleted) continue;
+      var amtKey = String(tx.amount);
+      if (!pool[amtKey]) pool[amtKey] = [];
+      pool[amtKey].push(tx);
+    }
+
     var updates = [];
+    var details = [];
     var matchedCount = 0;
     var unmatchedCount = 0;
 
     for (var i = 0; i < sheetTransactions.length; i++) {
       var sheetTx = sheetTransactions[i];
-      var key = sheetTx.date + '_' + sheetTx.milliunits;
-      var candidates = pool[key];
+      var amtKey = String(sheetTx.milliunits);
+      var candidates = pool[amtKey];
 
       var matchedIndex = -1;
       var bestScore = 0;
+      var matchReason = '';
 
       if (candidates && candidates.length > 0) {
-        // If there is only 1 candidate on that exact date with exact amount, lower threshold
-        var threshold = (candidates.length === 1) ? 0.55 : 0.65;
-
         for (var c = 0; c < candidates.length; c++) {
-          var ynabPayee = candidates[c].payee_name || '';
-          var score = stringSimilarity(sheetTx.payee, ynabPayee);
+          var ynabTx = candidates[c];
+          var dateDiff = getDateDiffDays(sheetTx.date, ynabTx.date);
 
-          // If payee score is below threshold, also check if sheetTx.memo contains payee info
-          if (score < threshold && sheetTx.memo) {
+          // Allow a multi-day clearing window up to 4 days
+          if (dateDiff > 4) continue;
+
+          var ynabPayee = ynabTx.payee_name || '';
+          var rawScore = stringSimilarity(sheetTx.payee, ynabPayee);
+
+          // If payee score is low, also check sheetTx.memo
+          if (rawScore < 0.6 && sheetTx.memo) {
             var memoScore = stringSimilarity(sheetTx.memo, ynabPayee);
-            if (memoScore * 0.9 > score) {
-              score = memoScore * 0.9;
+            if (memoScore * 0.9 > rawScore) {
+              rawScore = memoScore * 0.9;
             }
           }
 
-          if (score >= threshold && score > bestScore) {
-            bestScore = score;
+          // Apply slight penalty for date difference (5% per day)
+          var dateMultiplier = 1.0 - (dateDiff * 0.05);
+          var finalScore = rawScore * dateMultiplier;
+
+          // Threshold: 0.50 if exact day & single candidate, otherwise 0.60
+          var threshold = (dateDiff === 0 && candidates.length === 1) ? 0.50 : 0.60;
+
+          if (finalScore >= threshold && finalScore > bestScore) {
+            bestScore = finalScore;
             matchedIndex = c;
-            if (score >= 0.95) break; // Strong match found
+            matchReason = 'Matched with "' + ynabPayee + '" (' + ynabTx.date + ', diff=' + dateDiff + 'd, score=' + Math.round(finalScore * 100) + '%)';
+            if (finalScore >= 0.95 && dateDiff === 0) break; // Strong match found
           }
         }
       }
@@ -221,21 +243,25 @@ var Matcher = (function() {
           status: 'Matched',
           ynabId: matchedYnabTx.id
         });
+        details.push('Row ' + sheetTx.rowNum + ': ' + matchReason);
       } else {
-        // Unmatched (ready for upload)
+        // Unmatched
         unmatchedCount++;
         updates.push({
           rowNum: sheetTx.rowNum,
           status: 'Unmatched',
           ynabId: ''
         });
+        var count = candidates ? candidates.length : 0;
+        details.push('Row ' + sheetTx.rowNum + ' (' + sheetTx.date + ', ' + (sheetTx.milliunits / 1000) + '): Unmatched (' + count + ' candidates with same amount)');
       }
     }
 
     return {
       matchedCount: matchedCount,
       unmatchedCount: unmatchedCount,
-      updates: updates
+      updates: updates,
+      details: details
     };
   }
 
@@ -243,7 +269,7 @@ var Matcher = (function() {
     normalizePayee: normalizePayee,
     getPrimarySegment: getPrimarySegment,
     stringSimilarity: stringSimilarity,
-    buildConsumptionPool: buildConsumptionPool,
+    getDateDiffDays: getDateDiffDays,
     matchSheetWithYnab: matchSheetWithYnab
   };
 })();

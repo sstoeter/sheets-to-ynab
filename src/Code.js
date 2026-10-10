@@ -244,8 +244,14 @@ function apiRunMatch() {
     }
   }
 
-  // 4. Fetch YNAB transactions for this account since minDate
-  var ynabTxs = YnabClient.fetchTransactionsSince(linked.budgetId, linked.accountId, minDate);
+  // Subtract 10 days buffer so transactions cleared or entered slightly earlier are included
+  var parts = minDate.split('-');
+  var minDateObj = new Date(Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
+  minDateObj.setUTCDate(minDateObj.getUTCDate() - 10);
+  var safeSinceDate = Utilities.formatDate(minDateObj, 'UTC', 'yyyy-MM-dd');
+
+  // 4. Fetch YNAB transactions for this account since safeSinceDate
+  var ynabTxs = YnabClient.fetchTransactionsSince(linked.budgetId, linked.accountId, safeSinceDate);
 
   // 5. Run matching with 1-to-1 consumption pool
   var matchResult = Matcher.matchSheetWithYnab(sheetTxs, ynabTxs);
@@ -256,7 +262,9 @@ function apiRunMatch() {
   return {
     matchedCount: matchResult.matchedCount,
     unmatchedCount: matchResult.unmatchedCount,
-    total: sheetTxs.length
+    total: sheetTxs.length,
+    ynabFetchedCount: ynabTxs.length,
+    details: matchResult.details || []
   };
 }
 

@@ -566,7 +566,12 @@
         .withSuccessHandler(function(res) {
           btn.disabled = false;
           btn.textContent = '1. Match Existing Transactions';
-          log('Match finished: ' + res.matchedCount + ' matched in YNAB, ' + res.unmatchedCount + ' ready for upload.');
+          log('Match finished: ' + res.matchedCount + ' matched, ' + res.unmatchedCount + ' unmatched. (Checked ' + (res.ynabFetchedCount || 0) + ' YNAB txs in this account)');
+          if (res.details && res.details.length > 0) {
+            for (var d = 0; d < res.details.length; d++) {
+              log('  ' + res.details[d]);
+            }
+          }
           refreshState();
         })
         .withFailureHandler(function(err) {
