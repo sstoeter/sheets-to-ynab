@@ -289,7 +289,10 @@
 
     <!-- Read-only Display -->
     <div id="account-display" class="form-group">
-      <div style="font-size:11px; color:var(--text-secondary); margin-bottom:2px;">Active Sheet: <b id="active-sheet-name"></b></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+        <div style="font-size:11px; color:var(--text-secondary);">Active Sheet: <b id="active-sheet-name"></b></div>
+        <button onclick="refreshState()" title="Refresh Active Sheet Info" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:13px; line-height:1; padding:0 2px;">↻</button>
+      </div>
       <div id="linked-account-name" class="meta-tag" style="width:100%;">None</div>
     </div>
 
@@ -358,6 +361,8 @@
 
   <script>
     var globalBudgetsData = [];
+    var currentSheetName = '';
+    var isCheckingTab = false;
 
     function log(msg) {
       var box = document.getElementById('console');
@@ -381,6 +386,7 @@
       var cardSync = document.getElementById('card-sync');
       var btnLogout = document.getElementById('btn-logout');
 
+      currentSheetName = state.activeSheetName;
       document.getElementById('active-sheet-name').textContent = state.activeSheetName;
 
       if (btnLogout) {
@@ -627,7 +633,29 @@
         .apiDisconnect();
     }
 
-    var disconnectYnab = logoutYnab;
+    function checkActiveTab() {
+      if (document.hidden || isCheckingTab) return;
+      isCheckingTab = true;
+      google.script.run
+        .withSuccessHandler(function(tab) {
+          isCheckingTab = false;
+          if (tab && tab.sheetName && tab.sheetName !== currentSheetName) {
+            log('Detected sheet switch: ' + tab.sheetName);
+            refreshState();
+          }
+        })
+        .withFailureHandler(function() {
+          isCheckingTab = false;
+        })
+        .apiGetActiveSheetSummary();
+    }
+
+    // Automatically check for sheet tab switches every 1.5 seconds
+    setInterval(checkActiveTab, 1500);
+
+    // Also check immediately when the sidebar receives mouse or focus
+    window.addEventListener('focus', checkActiveTab);
+    document.body.addEventListener('mouseenter', checkActiveTab);
 
     // Initialize on load
     refreshState();

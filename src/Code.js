@@ -92,6 +92,18 @@ function menuLogOut() {
    ========================================================================== */
 
 /**
+ * Lightweight endpoint to detect active sheet tab switches.
+ */
+function apiGetActiveSheetSummary() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  if (!sheet) return null;
+  return {
+    sheetName: sheet.getName(),
+    sheetId: sheet.getSheetId()
+  };
+}
+
+/**
  * Retrieves the current state of authentication, active sheet, and account link.
  */
 function apiGetState() {
