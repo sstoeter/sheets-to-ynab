@@ -634,26 +634,31 @@
     }
 
     function checkActiveTab() {
-      if (document.hidden || isCheckingTab) return;
+      if (document.hidden || isCheckingTab || !currentSheetName) return;
       isCheckingTab = true;
       google.script.run
-        .withSuccessHandler(function(tab) {
+        .withSuccessHandler(function(res) {
           isCheckingTab = false;
-          if (tab && tab.sheetName && tab.sheetName !== currentSheetName) {
-            log('Detected sheet switch: ' + tab.sheetName);
-            refreshState();
+          if (res && res.changed) {
+            log('Switched to sheet: ' + res.activeSheetName);
+            renderState({
+              isAuthorized: true,
+              activeSheetName: res.activeSheetName,
+              linkedAccount: res.linkedAccount,
+              stats: res.stats
+            });
           }
         })
         .withFailureHandler(function() {
           isCheckingTab = false;
         })
-        .apiGetActiveSheetSummary();
+        .apiCheckActiveSheet(currentSheetName);
     }
 
-    // Automatically check for sheet tab switches every 1.5 seconds
-    setInterval(checkActiveTab, 1500);
+    // Fast, lightweight 800ms heartbeat
+    setInterval(checkActiveTab, 800);
 
-    // Also check immediately when the sidebar receives mouse or focus
+    // Also trigger immediately when user focuses or moves cursor over the sidebar
     window.addEventListener('focus', checkActiveTab);
     document.body.addEventListener('mouseenter', checkActiveTab);
 

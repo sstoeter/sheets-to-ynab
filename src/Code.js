@@ -92,14 +92,56 @@ function menuLogOut() {
    ========================================================================== */
 
 /**
- * Lightweight endpoint to detect active sheet tab switches.
+ * Calculates quick transaction stats by reading only the single YNAB Status column
+ * instead of reading every cell in the spreadsheet.
  */
-function apiGetActiveSheetSummary() {
+function getQuickSheetStats(sheet) {
+  var stats = { total: 0, matched: 0, unmatched: 0 };
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return stats;
+
+  stats.total = lastRow - 1;
+  try {
+    var headerMap = SheetLifecycle.detectHeaders(sheet);
+    var statusCol = headerMap['YNAB Status'];
+    if (statusCol) {
+      var values = sheet.getRange(2, statusCol, lastRow - 1, 1).getValues();
+      for (var i = 0; i < values.length; i++) {
+        var val = values[i][0];
+        if (val === 'Matched' || val === 'Uploaded' || val === 'Duplicate') {
+          stats.matched++;
+        } else {
+          stats.unmatched++;
+        }
+      }
+    } else {
+      stats.unmatched = stats.total;
+    }
+  } catch (e) {
+    stats.unmatched = stats.total;
+  }
+  return stats;
+}
+
+/**
+ * Ultra-fast tab change detector & state sync in a single roundtrip.
+ * If the active sheet matches clientSheetName, returns { changed: false } in ~15ms.
+ * If changed, returns full state for the new sheet in a single call without a second roundtrip.
+ */
+function apiCheckActiveSheet(clientSheetName) {
   var sheet = SpreadsheetApp.getActiveSheet();
-  if (!sheet) return null;
+  if (!sheet) return { changed: false };
+  var activeName = sheet.getName();
+
+  if (clientSheetName && activeName === clientSheetName) {
+    return { changed: false };
+  }
+
   return {
-    sheetName: sheet.getName(),
-    sheetId: sheet.getSheetId()
+    changed: true,
+    activeSheetName: activeName,
+    linkedAccount: MetadataManager.getLinkedAccount(sheet),
+    stats: getQuickSheetStats(sheet)
   };
 }
 
@@ -112,26 +154,8 @@ function apiGetState() {
   var isAuth = AuthManager.isAuthorized();
   var maskedToken = AuthManager.getMaskedToken();
 
-  var linked = MetadataManager.getLinkedAccount(sheet);
-  var stats = { total: 0, matched: 0, unmatched: 0 };
-
-  if (sheet) {
-    try {
-      var headerMap = SheetLifecycle.detectHeaders(sheet);
-      var txs = SheetLifecycle.readTransactions(sheet, headerMap);
-      stats.total = txs.length;
-      for (var i = 0; i < txs.length; i++) {
-        var st = txs[i].status;
-        if (st === 'Matched' || st === 'Uploaded' || st === 'Duplicate') {
-          stats.matched++;
-        } else {
-          stats.unmatched++;
-        }
-      }
-    } catch (e) {
-      // Header map or validation issue, keep stats at 0
-    }
-  }
+  var linked = sheet ? MetadataManager.getLinkedAccount(sheet) : null;
+  var stats = sheet ? getQuickSheetStats(sheet) : { total: 0, matched: 0, unmatched: 0 };
 
   return {
     isAuthorized: isAuth,
