@@ -9,36 +9,38 @@ A lightweight Google Sheets script that synchronizes bank transactions directly 
 - **Personal Access Token (PAT) Authentication**: Zero developer apps, zero redirect URI whitelists, and no Google OAuth session conflicts.
 - **Family & Multi-Sheet Friendly**: Anyone in your family can duplicate the spreadsheet, enter their own YNAB token once in the sidebar, and start syncing immediately. Tokens are stored in private Google `UserProperties`.
 - **Formula-Driven Friendly**: Safely handles formula-populated sheets (e.g. `=FILTER(...)` or `=ARRAYFORMULA(...)` referencing raw bank CSV exports). Status columns are refreshed idempotently on every sync.
-- **Ambiguous Duplicate Protection**: Uses a 1-to-1 consumption pool so identical transactions on the same day match accurately without double-linking.
+- **Timezone-Safe ISO Dates**: Preserves the exact spreadsheet calendar date using the sheet's configured timezone and displayed cell values, eliminating 1-day timezone shifts.
+- **Deterministic Deduplication**: Generates official YNAB `import_id` values (`YNAB:[milliunits]:[date]:[occurrence]`) to protect against duplicate uploads.
 - **Milliunit Conversion**: Automatically converts human-readable decimals (e.g. `42.13`) into YNAB integer milliunits (`-42130`).
-- **Deduplication Key**: Generates deterministic `import_id` values (`YNAB:[amount]:[date]:[occurrence]`) to protect against duplicate uploads.
 - **Tab-to-Account Binding**: Links each sheet tab independently to any YNAB Budget and Account via Google Sheets Developer Metadata.
+- **Live Account Anchor**: The sidebar displays a real-time receipt card of the most recent YNAB record to provide a visual checkpoint before uploading.
 
 ---
 
 ## Sheet Column Format
 
-The target sheet requires the following headers in row 1 (order independent):
+The target sheet requires the following headers in row 1 (order independent for columns 1–5, directly entered or formula-generated):
 
 | Header | Type | Format Example | Description |
 | :--- | :--- | :--- | :--- |
-| `Date` | String / Date | `2026-10-02` | **Strict ISO 8601 (`YYYY-MM-DD`)** |
-| `Payee` | String | `Trader Joe's` | Payee name |
+| `Date` | String / Date | `2026-10-11` | **ISO 8601 (`YYYY-MM-DD`)** |
+| `Payee` | String | `Coop` | Payee name |
 | `Memo` | String (Optional) | `Groceries` | Notes or bank description |
-| `Outflow` | Number | `42.13` or `0` | Outflow expense amount (**numeric only**) |
+| `Outflow` | Number | `43.00` or `0` | Outflow expense amount (**numeric only**) |
 | `Inflow` | Number | `1250.00` or `0` | Inflow deposit amount (**numeric only**) |
-| `YNAB Status` | Managed | `Matched`, `Unmatched`, `Uploaded`, `Duplicate` | Auto-created, semantic color badges |
-| `YNAB ID` | Managed | `45f6a9e2-...` | Auto-created, monospace 9pt |
+| `YNAB Import ID` | Managed | `YNAB:-43000:2026-10-11:1` | Auto-inserted between Inflow and YNAB Status (width: 200px) |
+| `YNAB Status` | Managed | `Uploaded`, `Duplicate`, `Skipped` | Auto-created, semantic color badges (blank before upload) |
+| `YNAB ID` | Managed | `45f6a9e2-...` | Auto-created, monospace 9pt (populated for newly uploaded records) |
 
 > [!NOTE]
-> If `YNAB Status` and `YNAB ID` are not present in row 1, the script appends and formats them automatically on first run.
+> If managed columns (`YNAB Import ID`, `YNAB Status`, `YNAB ID`) are not present in row 1, the script creates, arranges, and formats them automatically on first run.
 
 ### Status Badge Legend
 
-- 🟢 **`Matched`**: Matches an existing transaction in YNAB (consumed from matching pool).
-- 🟡 **`Unmatched`**: New transaction detected; ready to be uploaded to YNAB.
-- 🔵 **`Uploaded`**: Successfully posted to YNAB with its newly assigned YNAB ID.
-- 🔴 **`Duplicate`**: YNAB recognized this transaction as a duplicate via its `import_id` and prevented duplicate entry.
+- 🟢 **`Uploaded`**: Successfully posted to YNAB with its newly assigned YNAB UUID.
+- 🔴 **`Duplicate`**: YNAB recognized an existing transaction with this `YNAB Import ID` and skipped it.
+- 🟡 **`Skipped`**: Row has 0.00 amount or missing required fields.
+- *(Blank)*: Freshly generated Import ID; ready for upload.
 
 ---
 
@@ -59,23 +61,22 @@ The target sheet requires the following headers in row 1 (order independent):
 
 ## Daily Usage Workflow
 
-1. Paste or populate your bank transactions in the sheet.
-2. Click **1. Match Existing Transactions**:
-   - Wipes old status cache (safe for dynamic formulas).
-   - Matches rows against current YNAB records using a 1-to-1 consumption pool.
-   - Shows live counts: *Matched in YNAB* vs *Unmatched*.
-3. Click **2. Upload Unmatched to YNAB**:
-   - Uploads new rows with deterministic `import_id` deduplication keys.
-   - Marks rows as `Uploaded` with their newly assigned YNAB IDs.
+1. Paste or populate your bank transactions in the sheet (direct entry or formulas like `=FILTER(...)`).
+2. In the sidebar, click **Upload Transactions**:
+   - Deterministic `YNAB Import ID`s are freshly regenerated for all rows.
+   - All transactions are uploaded to YNAB.
+   - New records receive status **`Uploaded`** and their new YNAB UUID.
+   - Existing records receive status **`Duplicate`**.
+   - The "Most Recent YNAB Record" card in the sidebar immediately refreshes to show the latest state.
 
 ### Menu Shortcuts
 
-You can also run common actions directly from the Google Sheets menu (**YNAB Sync**):
+You can also run actions directly from the Google Sheets menu (**YNAB Sync**):
 - **Open Sidebar**: Launches the interactive control panel.
-- **1. Match Existing Transactions**: Runs matching in the background and toasts progress.
-- **2. Upload Unmatched to YNAB**: Uploads eligible rows and toasts results.
-- **Reset Status Columns**: Manually clears status badges and re-applies column formatting.
-- **Log Out from YNAB**: Disconnects your account and removes stored token.
+- **Upload Transactions**: Regenerates Import IDs and uploads all rows.
+- **Generate Import IDs**: Generates or refreshes Import IDs on the sheet without uploading.
+- **Reset Status Columns**: Clears `YNAB Import ID`, `YNAB Status`, and `YNAB ID` columns.
+- **Log Out from YNAB**: Disconnects your account and removes stored token from private `UserProperties`.
 
 ---
 
@@ -101,8 +102,17 @@ To deploy updates to a sheet's bound script from this repository:
    ```
 2. Push all files:
    ```bash
-   npx @google/clasp push -f
+   npm run push
    ```
+
+---
+
+## Security Architecture
+
+- **Private Storage**: Tokens are stored exclusively in `UserProperties` (isolated per Google user account).
+- **Masked Credentials**: The sidebar only displays masked representations of tokens (`••••••••1234`).
+- **XSS & Injection Protection**: User and API inputs are escaped with strict entity encoding, and dropdown options are instantiated via safe DOM manipulation.
+- **Minimal Scopes**: The script requests only the minimal necessary Google OAuth scopes: `spreadsheets.currentonly`, `script.external_request`, and `script.container.ui`.
 
 ---
 

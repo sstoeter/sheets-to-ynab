@@ -4,7 +4,7 @@
   <base target="_top">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #137333;
@@ -41,7 +41,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
     }
@@ -75,19 +75,48 @@
       color: var(--danger);
     }
 
+    .alert-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      font-size: 12px;
+      line-height: 1.4;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-success {
+      background: #e6f4ea;
+      border: 1px solid #ceead6;
+      color: #137333;
+    }
+
+    .alert-error {
+      background: #fce8e6;
+      border: 1px solid #fad2cf;
+      color: #c5221f;
+    }
+
     .card {
       background: var(--surface);
       border-radius: var(--radius);
       border: 1px solid var(--border);
       padding: 14px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       box-shadow: var(--shadow-sm);
     }
 
     .card-title {
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       color: var(--text);
       display: flex;
       justify-content: space-between;
@@ -100,7 +129,7 @@
 
     label {
       display: block;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: var(--text-secondary);
       margin-bottom: 4px;
@@ -149,6 +178,13 @@
       background-color: var(--primary-hover);
     }
 
+    .btn-upload-prominent {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(19,115,51,0.25);
+    }
+
     .btn-secondary {
       background-color: #ffffff;
       color: var(--text);
@@ -160,68 +196,59 @@
     }
 
     .btn:disabled {
-      opacity: 0.5;
+      opacity: 0.55;
       cursor: not-allowed;
+      box-shadow: none;
     }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .stat-box {
-      background: #f1f3f4;
+    .receipt-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 8px 4px;
-      text-align: center;
+      padding: 10px 12px;
+      margin-top: 6px;
     }
 
-    .stat-box.highlight {
-      background: var(--primary-light);
-    }
-
-    .stat-num {
-      font-size: 18px;
+    .amount-pill {
       font-weight: 700;
-      color: var(--text);
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
     }
 
-    .stat-box.highlight .stat-num {
-      color: var(--primary);
+    .amount-outflow {
+      background: #f1f3f4;
+      color: #202124;
     }
 
-    .stat-lbl {
-      font-size: 10px;
-      color: var(--text-secondary);
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .console {
-      background: #202124;
-      color: #e8eaed;
-      font-family: monospace;
-      font-size: 11px;
-      border-radius: 6px;
-      padding: 10px;
-      height: 110px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.4;
+    .amount-inflow {
+      background: #e6f4ea;
+      color: #137333;
     }
 
     .meta-tag {
       display: inline-block;
-      padding: 3px 8px;
+      padding: 4px 8px;
       border-radius: 4px;
       background: #f1f3f4;
       font-size: 12px;
       font-weight: 500;
       color: var(--text);
       word-break: break-all;
+    }
+
+    .console {
+      background: #202124;
+      color: #e8eaed;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 11px;
+      border-radius: 6px;
+      padding: 8px 10px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.4;
     }
 
     .spinner {
@@ -259,7 +286,17 @@
     </div>
   </div>
 
-  <!-- Authentication Card: Personal Access Token -->
+  <!-- Notification / Feedback Banner -->
+  <div id="alert-banner" class="alert-banner alert-success hidden">
+    <div id="alert-icon" style="font-size:16px; line-height:1; font-weight:700;">✓</div>
+    <div style="flex:1;">
+      <div id="alert-title" style="font-weight:600; font-size:12px;"></div>
+      <div id="alert-message" style="font-size:11px; opacity:0.9;"></div>
+    </div>
+    <button onclick="dismissAlert()" style="background:none; border:none; cursor:pointer; font-size:16px; color:inherit; opacity:0.6; line-height:1; padding:0 2px;">×</button>
+  </div>
+
+  <!-- State 1: Authentication Card -->
   <div id="card-token" class="card hidden">
     <div class="card-title">Connect to YNAB</div>
     <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">
@@ -277,10 +314,10 @@
     <button id="btn-save-token" class="btn btn-primary" onclick="savePersonalAccessToken()">Connect to YNAB</button>
   </div>
 
-  <!-- State 3: Sheet Account Association -->
+  <!-- State 2: Destination & Context Card -->
   <div id="card-account" class="card hidden">
     <div class="card-title">
-      <span>Linked YNAB Account</span>
+      <span>Account Destination</span>
       <div style="display:flex; gap:4px;">
         <button id="btn-change-account" class="btn btn-secondary" style="width:auto; padding:2px 8px; font-size:11px;" onclick="showAccountPicker()">Change</button>
         <button id="btn-unlink-account" class="btn btn-secondary hidden" style="width:auto; padding:2px 8px; font-size:11px;" onclick="unlinkAccount()">Unlink</button>
@@ -288,12 +325,21 @@
     </div>
 
     <!-- Read-only Display -->
-    <div id="account-display" class="form-group">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-        <div style="font-size:11px; color:var(--text-secondary);">Active Sheet: <b id="active-sheet-name"></b></div>
-        <button onclick="refreshState()" title="Refresh Active Sheet Info" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:13px; line-height:1; padding:0 2px;">↻</button>
+    <div id="account-display">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <div style="font-size:11px; color:var(--text-secondary);">Sheet: <b id="active-sheet-name" style="color:var(--text);"></b></div>
+        <button onclick="refreshState()" title="Refresh Sheet & Account Info" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:13px; line-height:1; padding:0 2px;">↻</button>
       </div>
-      <div id="linked-account-name" class="meta-tag" style="width:100%;">None</div>
+      <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">YNAB Budget: <b id="linked-budget-name" style="color:var(--text);">None</b></div>
+      <div style="font-size:11px; color:var(--text-secondary); margin-bottom:12px;">YNAB Account: <b id="linked-account-name" style="color:var(--text);">None</b></div>
+
+      <!-- Most Recent YNAB Transaction Anchor -->
+      <div id="latest-tx-container">
+        <label>Most Recent YNAB Record</label>
+        <div id="latest-tx-box" class="receipt-box">
+          <span style="color:var(--text-secondary); font-size:11px;">Loading...</span>
+        </div>
+      </div>
     </div>
 
     <!-- Account Picker Form -->
@@ -317,47 +363,28 @@
     </div>
   </div>
 
-  <!-- State 4: Sync & Actions Card -->
+  <!-- State 3: Upload Action Card -->
   <div id="card-sync" class="card hidden">
-    <div class="card-title">Transactions</div>
-
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div id="stat-total" class="stat-num">0</div>
-        <div class="stat-lbl">Rows</div>
-      </div>
-      <div class="stat-box highlight">
-        <div id="stat-matched" class="stat-num">0</div>
-        <div class="stat-lbl">Matched</div>
-      </div>
-      <div class="stat-box">
-        <div id="stat-unmatched" class="stat-num">0</div>
-        <div class="stat-lbl">Unmatched</div>
-      </div>
+    <div class="card-title">Sync Transactions</div>
+    <div id="sync-status-hint" style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
+      Checking transactions in sheet...
     </div>
 
-    <!-- Action Buttons -->
-    <div style="display:flex; flex-direction:column; gap:8px;">
-      <button id="btn-match" class="btn btn-primary" onclick="runMatch()">
-        1. Match Existing Transactions
-      </button>
-      <button id="btn-upload" class="btn btn-secondary" onclick="runUpload()" disabled>
-        2. Upload Unmatched to YNAB
-      </button>
-      <button class="btn btn-secondary" style="font-size:11px; padding:6px;" onclick="resetStatus()">
-        Reset Status Columns
+    <!-- Prominent Action Button -->
+    <div>
+      <button id="btn-upload" class="btn btn-primary btn-upload-prominent" onclick="runUpload()">
+        Upload Transactions
       </button>
     </div>
   </div>
 
-  <!-- Activity Console -->
-  <div style="margin-top:10px;">
-    <label>Activity Log</label>
-    <div id="console" class="console">Ready.</div>
-  </div>
-
-
+  <!-- Collapsible Technical Log -->
+  <details id="details-log" style="margin-top:10px; font-size:11px; color:var(--text-secondary);">
+    <summary style="cursor:pointer; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; user-select:none; margin-bottom:4px;">
+      Activity Log
+    </summary>
+    <div id="console" class="console" style="height:80px;">Ready.</div>
+  </details>
 
   <script>
     var globalBudgetsData = [];
@@ -366,8 +393,26 @@
 
     function log(msg) {
       var box = document.getElementById('console');
+      if (!box) return;
       var time = new Date().toLocaleTimeString();
       box.textContent = '[' + time + '] ' + msg + '\n' + box.textContent;
+    }
+
+    function showAlert(type, title, message) {
+      var banner = document.getElementById('alert-banner');
+      var icon = document.getElementById('alert-icon');
+      var t = document.getElementById('alert-title');
+      var m = document.getElementById('alert-message');
+
+      banner.className = 'alert-banner alert-' + type;
+      icon.textContent = (type === 'success') ? '✓' : (type === 'error' ? '⚠' : 'ℹ');
+      t.textContent = title;
+      m.textContent = message || '';
+      banner.classList.remove('hidden');
+    }
+
+    function dismissAlert() {
+      document.getElementById('alert-banner').classList.add('hidden');
     }
 
     function refreshState() {
@@ -375,6 +420,7 @@
         .withSuccessHandler(renderState)
         .withFailureHandler(function(err) {
           log('Error: ' + err.message);
+          showAlert('error', 'Sync Error', err.message);
         })
         .apiGetState();
     }
@@ -414,34 +460,54 @@
 
       // Render Account Association
       var btnUnlink = document.getElementById('btn-unlink-account');
+      var btnUpload = document.getElementById('btn-upload');
+      var statusHint = document.getElementById('sync-status-hint');
+
       if (state.linkedAccount) {
-        document.getElementById('linked-account-name').textContent =
-          state.linkedAccount.budgetName + ' > ' + state.linkedAccount.accountName;
-        document.getElementById('btn-match').disabled = false;
+        var budgetEl = document.getElementById('linked-budget-name');
+        var accountEl = document.getElementById('linked-account-name');
+        if (budgetEl) budgetEl.textContent = state.linkedAccount.budgetName || 'None';
+        if (accountEl) accountEl.textContent = state.linkedAccount.accountName || 'None';
         if (btnUnlink) btnUnlink.classList.remove('hidden');
         hideAccountPicker();
+        loadLatestTransaction();
+
+        // Upload button is always active without count
+        btnUpload.disabled = false;
+        btnUpload.textContent = 'Upload Transactions';
+
+        var stats = state.stats || { total: 0, pending: 0, uploaded: 0 };
+        if (stats.total === 0) {
+          statusHint.textContent = 'No transactions found in this sheet.';
+        } else if (stats.pending === 0) {
+          statusHint.textContent = 'All ' + stats.total + ' transactions in this sheet synced with YNAB.';
+        } else {
+          statusHint.textContent = stats.total + ' transaction' + (stats.total === 1 ? '' : 's') + ' in sheet (' + stats.pending + ' pending).';
+        }
       } else {
-        document.getElementById('linked-account-name').textContent = '⚠️ Not linked to any YNAB account';
-        document.getElementById('btn-match').disabled = true;
+        var budgetEl = document.getElementById('linked-budget-name');
+        var accountEl = document.getElementById('linked-account-name');
+        if (budgetEl) budgetEl.textContent = 'None';
+        if (accountEl) accountEl.textContent = 'None';
+        btnUpload.disabled = false;
+        btnUpload.textContent = 'Upload Transactions';
+        statusHint.textContent = 'Link this sheet to an account to start syncing.';
         if (btnUnlink) btnUnlink.classList.add('hidden');
         if (document.getElementById('account-picker').classList.contains('hidden')) {
           showAccountPicker();
         }
+        var txBox = document.getElementById('latest-tx-box');
+        if (txBox) {
+          txBox.innerHTML = '<span style="color:var(--text-secondary); font-size:11px;">Link an account to view recent transactions</span>';
+        }
       }
-
-      // Render Stats
-      document.getElementById('stat-total').textContent = state.stats.total;
-      document.getElementById('stat-matched').textContent = state.stats.matched;
-      document.getElementById('stat-unmatched').textContent = state.stats.unmatched;
-
-      document.getElementById('btn-upload').disabled = (state.stats.unmatched === 0 || !state.linkedAccount);
     }
 
     function savePersonalAccessToken() {
       var tokenInput = document.getElementById('pat-token-input');
       var token = tokenInput.value.trim();
       if (!token) {
-        alert('Please enter your YNAB Personal Access Token.');
+        showAlert('error', 'Token Required', 'Please enter your YNAB Personal Access Token.');
         return;
       }
       var btn = document.getElementById('btn-save-token');
@@ -454,13 +520,14 @@
           btn.textContent = 'Connect to YNAB';
           tokenInput.value = '';
           log('Successfully connected to YNAB!');
+          showAlert('success', 'Connected', 'Successfully authenticated with YNAB.');
           refreshState();
         })
         .withFailureHandler(function(err) {
           btn.disabled = false;
           btn.textContent = 'Connect to YNAB';
           log('Error: ' + err.message);
-          alert('Could not connect to YNAB: ' + err.message);
+          showAlert('error', 'Connection Failed', err.message);
         })
         .apiSaveToken(token);
     }
@@ -479,7 +546,10 @@
           var bSelect = document.getElementById('select-budget');
           bSelect.innerHTML = '<option value="">-- Choose Budget --</option>';
           for (var i = 0; i < budgets.length; i++) {
-            bSelect.innerHTML += '<option value="' + budgets[i].id + '">' + budgets[i].name + '</option>';
+            var opt = document.createElement('option');
+            opt.value = budgets[i].id;
+            opt.textContent = budgets[i].name;
+            bSelect.appendChild(opt);
           }
           onBudgetChange();
         })
@@ -495,21 +565,25 @@
       document.getElementById('btn-change-account').classList.remove('hidden');
       var btnUnlink = document.getElementById('btn-unlink-account');
       var accountText = document.getElementById('linked-account-name').textContent;
-      if (btnUnlink && accountText && !accountText.startsWith('⚠️')) {
+      if (btnUnlink && accountText && accountText !== 'None' && !accountText.startsWith('⚠️')) {
         btnUnlink.classList.remove('hidden');
+      } else if (btnUnlink) {
+        btnUnlink.classList.add('hidden');
       }
     }
 
     function unlinkAccount() {
-      if (!confirm('Unlink this sheet tab from YNAB?')) return;
+      if (!confirm('Unlink this sheet from YNAB?')) return;
       log('Unlinking sheet...');
       google.script.run
         .withSuccessHandler(function() {
           log('Sheet unlinked.');
+          showAlert('success', 'Unlinked', 'This sheet has been unlinked.');
           refreshState();
         })
         .withFailureHandler(function(err) {
           log('Error: ' + err.message);
+          showAlert('error', 'Unlink Failed', err.message);
         })
         .apiUnlinkActiveSheet();
     }
@@ -525,7 +599,10 @@
 
       var accounts = selectedBudget.accounts || [];
       for (var i = 0; i < accounts.length; i++) {
-        aSelect.innerHTML += '<option value="' + accounts[i].id + '">' + accounts[i].name + ' (' + accounts[i].type + ')</option>';
+        var aOpt = document.createElement('option');
+        aOpt.value = accounts[i].id;
+        aOpt.textContent = accounts[i].name + ' (' + accounts[i].type + ')';
+        aSelect.appendChild(aOpt);
       }
     }
 
@@ -539,7 +616,7 @@
       var accountName = aSelect.options[aSelect.selectedIndex].text;
 
       if (!budgetId || !accountId) {
-        alert('Please select both a Budget and an Account.');
+        showAlert('error', 'Selection Incomplete', 'Please select both a Budget and an Account.');
         return;
       }
 
@@ -547,76 +624,84 @@
       google.script.run
         .withSuccessHandler(function() {
           log('Sheet successfully linked.');
+          showAlert('success', 'Account Linked', 'Sheet is now linked to ' + accountName + '.');
           hideAccountPicker();
           refreshState();
         })
         .withFailureHandler(function(err) {
           log('Link error: ' + err.message);
+          showAlert('error', 'Link Error', err.message);
         })
         .apiLinkActiveSheet(budgetId, budgetName, accountId, accountName);
     }
 
-    function runMatch() {
-      var btn = document.getElementById('btn-match');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Matching...';
-      log('Running Match & Mark pass (clearing old cache)...');
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function loadLatestTransaction() {
+      var box = document.getElementById('latest-tx-box');
+      if (!box) return;
 
       google.script.run
-        .withSuccessHandler(function(res) {
-          btn.disabled = false;
-          btn.textContent = '1. Match Existing Transactions';
-          log('Match finished: ' + res.matchedCount + ' matched, ' + res.unmatchedCount + ' unmatched. (Checked ' + (res.ynabFetchedCount || 0) + ' YNAB txs in this account)');
-          if (res.details && res.details.length > 0) {
-            for (var d = 0; d < res.details.length; d++) {
-              log('  ' + res.details[d]);
-            }
+        .withSuccessHandler(function(tx) {
+          if (!tx) {
+            box.innerHTML = '<span style="color:var(--text-secondary); font-size:11px;">No transactions found in this account</span>';
+            return;
           }
-          refreshState();
+          var amtNum = (tx.amount / 1000).toFixed(2);
+          var isOutflow = tx.amount < 0;
+          var pillClass = isOutflow ? 'amount-outflow' : 'amount-inflow';
+          var amtDisplay = (tx.amount > 0 ? '+' : '') + amtNum;
+
+          box.innerHTML =
+            '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">' +
+              '<div style="overflow:hidden; max-width:180px;">' +
+                '<div style="font-weight:600; font-size:12px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + escapeHtml(tx.payeeName) + '">' + escapeHtml(tx.payeeName) + '</div>' +
+                '<div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">' +
+                  '📅 ' + tx.date + (tx.memo ? ' · ' + escapeHtml(tx.memo) : '') +
+                '</div>' +
+              '</div>' +
+              '<div class="amount-pill ' + pillClass + '">' + amtDisplay + '</div>' +
+            '</div>';
         })
         .withFailureHandler(function(err) {
-          btn.disabled = false;
-          btn.textContent = '1. Match Existing Transactions';
-          log('Match error: ' + err.message);
-          alert('Error matching: ' + err.message);
+          box.innerHTML = '<span style="color:var(--danger); font-size:11px;">Could not load transaction</span>';
         })
-        .apiRunMatch();
+        .apiGetLatestTransaction();
     }
 
     function runUpload() {
       var btn = document.getElementById('btn-upload');
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span> Uploading...';
-      log('Uploading unmatched transactions to YNAB...');
+      log('Uploading transactions to YNAB...');
 
       google.script.run
         .withSuccessHandler(function(res) {
           btn.disabled = false;
-          btn.textContent = '2. Upload Unmatched to YNAB';
-          log('Upload finished: ' + res.uploadedCount + ' uploaded' + (res.duplicateCount ? (', ' + res.duplicateCount + ' duplicates skipped') : '') + '.');
+          btn.textContent = 'Upload Transactions';
+          var dupMsg = res.duplicateCount ? ' (' + res.duplicateCount + ' duplicates skipped)' : '';
+          var successMsg = res.uploadedCount + ' transaction' + (res.uploadedCount === 1 ? '' : 's') + ' uploaded to YNAB' + dupMsg + '.';
+          
+          log('Upload complete: ' + successMsg);
+          showAlert('success', 'Upload Complete', successMsg);
+          loadLatestTransaction();
           refreshState();
         })
         .withFailureHandler(function(err) {
           btn.disabled = false;
-          btn.textContent = '2. Upload Unmatched to YNAB';
+          btn.textContent = 'Upload Transactions';
           log('Upload error: ' + err.message);
-          alert('Error uploading: ' + err.message);
+          showAlert('error', 'Upload Failed', err.message);
         })
-        .apiRunUpload();
-    }
-
-    function resetStatus() {
-      if (!confirm('Clear all YNAB Status and YNAB ID values in the active sheet?')) return;
-      log('Resetting status columns...');
-      google.script.run
-        .withSuccessHandler(function() {
-          log('Status columns cleared.');
-          refreshState();
-        })
-        .withFailureHandler(function(err) {
-          log('Error: ' + err.message);
-        })
-        .apiResetStatus();
+        .apiUploadTransactions();
     }
 
     function logoutYnab() {
@@ -629,11 +714,13 @@
         .withSuccessHandler(function() {
           if (btnLogout) btnLogout.disabled = false;
           log('Successfully disconnected from YNAB.');
+          showAlert('info', 'Disconnected', 'You have been disconnected from YNAB.');
           refreshState();
         })
         .withFailureHandler(function(err) {
           if (btnLogout) btnLogout.disabled = false;
           log('Disconnect error: ' + err.message);
+          showAlert('error', 'Disconnect Error', err.message);
         })
         .apiDisconnect();
     }

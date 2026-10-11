@@ -144,10 +144,65 @@ var YnabClient = (function() {
     return request('/user', { method: 'get' }, token);
   }
 
+  /**
+   * Fetches the most recent transaction for a specific account.
+   * @param {string} budgetId
+   * @param {string} accountId
+   * @return {Object|null}
+   */
+  function getLatestAccountTransaction(budgetId, accountId) {
+    if (!budgetId || !accountId) return null;
+
+    // Check recent 60 days first for fast response
+    var now = new Date();
+    var sixtyDaysAgo = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() - 60));
+    var sinceDate = Utilities.formatDate(sixtyDaysAgo, 'UTC', 'yyyy-MM-dd');
+
+    var txs = [];
+    try {
+      txs = fetchTransactionsSince(budgetId, accountId, sinceDate);
+    } catch (e) {
+      txs = [];
+    }
+
+    // If no recent transactions in last 60 days, fetch without sinceDate
+    if (!txs || txs.length === 0) {
+      try {
+        txs = fetchTransactionsSince(budgetId, accountId, null);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    if (!txs || txs.length === 0) return null;
+
+    var activeTxs = txs.filter(function(t) { return !t.deleted; });
+    if (activeTxs.length === 0) return null;
+
+    // Sort descending by date
+    activeTxs.sort(function(a, b) {
+      if (a.date !== b.date) {
+        return a.date > b.date ? -1 : 1;
+      }
+      return 0;
+    });
+
+    var latest = activeTxs[0];
+    return {
+      id: latest.id,
+      date: latest.date,
+      payeeName: latest.payee_name || '(No Payee)',
+      amount: latest.amount, // in milliunits
+      memo: latest.memo || '',
+      cleared: latest.cleared
+    };
+  }
+
   return {
     fetchBudgets: fetchBudgets,
     fetchAccounts: fetchAccounts,
     fetchTransactionsSince: fetchTransactionsSince,
+    getLatestAccountTransaction: getLatestAccountTransaction,
     postTransactions: postTransactions,
     validateToken: validateToken
   };

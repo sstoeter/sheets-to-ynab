@@ -11,8 +11,8 @@ function onOpen(e) {
     .createMenu('YNAB Sync')
     .addItem('Open Sidebar', 'showSidebar')
     .addSeparator()
-    .addItem('1. Match Existing Transactions', 'menuMatchExisting')
-    .addItem('2. Upload Unmatched to YNAB', 'menuUploadUnmatched')
+    .addItem('Upload Transactions', 'menuUploadTransactions')
+    .addItem('Generate Import IDs', 'menuGenerateImportIds')
     .addItem('Reset Status Columns', 'menuResetStatus')
     .addSeparator()
     .addItem('Log Out from YNAB', 'menuLogOut')
@@ -30,28 +30,28 @@ function showSidebar() {
 }
 
 /**
- * Menu action: Match Existing
+ * Menu action: Generate Import IDs
  */
-function menuMatchExisting() {
+function menuGenerateImportIds() {
   try {
-    var result = apiRunMatch();
+    var result = apiGenerateImportIds();
     SpreadsheetApp.getActiveSpreadsheet().toast(
-      'Match complete: ' + result.matchedCount + ' matched, ' + result.unmatchedCount + ' ready to upload.',
-      'YNAB Match'
+      'Generated ' + result.generatedCount + ' Import IDs (Total rows: ' + result.total + ').',
+      'YNAB Sync'
     );
   } catch (err) {
-    SpreadsheetApp.getUi().alert('Match Error: ' + err.message);
+    SpreadsheetApp.getUi().alert('Import ID Error: ' + err.message);
   }
 }
 
 /**
- * Menu action: Upload Unmatched
+ * Menu action: Upload Transactions
  */
-function menuUploadUnmatched() {
+function menuUploadTransactions() {
   try {
-    var result = apiRunUpload();
+    var result = apiUploadTransactions();
     SpreadsheetApp.getActiveSpreadsheet().toast(
-      'Upload complete: ' + result.uploadedCount + ' uploaded to YNAB.',
+      'Upload complete: ' + result.uploadedCount + ' uploaded, ' + result.duplicateCount + ' duplicates.',
       'YNAB Upload'
     );
   } catch (err) {
@@ -65,7 +65,7 @@ function menuUploadUnmatched() {
 function menuResetStatus() {
   try {
     apiResetStatus();
-    SpreadsheetApp.getActiveSpreadsheet().toast('Status columns reset.', 'YNAB Reset');
+    SpreadsheetApp.getActiveSpreadsheet().toast('Managed columns reset.', 'YNAB Reset');
   } catch (err) {
     SpreadsheetApp.getUi().alert('Error: ' + err.message);
   }
@@ -92,41 +92,48 @@ function menuLogOut() {
    ========================================================================== */
 
 /**
- * Calculates quick transaction stats by reading only the single YNAB Status column
- * instead of reading every cell in the spreadsheet.
+ * Calculates quick transaction stats by reading managed column values.
  */
 function getQuickSheetStats(sheet) {
-  var stats = { total: 0, matched: 0, unmatched: 0 };
+  var stats = { total: 0, pending: 0, uploaded: 0, duplicate: 0, withImportId: 0 };
   var lastRow = sheet.getLastRow();
   if (lastRow <= 1) return stats;
 
   stats.total = lastRow - 1;
   try {
     var headerMap = SheetLifecycle.detectHeaders(sheet);
+    var importIdCol = headerMap['YNAB Import ID'];
     var statusCol = headerMap['YNAB Status'];
+
     if (statusCol) {
-      var values = sheet.getRange(2, statusCol, lastRow - 1, 1).getValues();
-      for (var i = 0; i < values.length; i++) {
-        var val = values[i][0];
-        if (val === 'Matched' || val === 'Uploaded' || val === 'Duplicate') {
-          stats.matched++;
+      var numRows = lastRow - 1;
+      var statusVals = sheet.getRange(2, statusCol, numRows, 1).getValues();
+      var importIdVals = importIdCol ? sheet.getRange(2, importIdCol, numRows, 1).getValues() : null;
+
+      for (var i = 0; i < numRows; i++) {
+        var stVal = String(statusVals[i][0] || '').trim();
+        var impVal = importIdVals ? String(importIdVals[i][0] || '').trim() : '';
+
+        if (impVal) stats.withImportId++;
+        if (stVal === 'Uploaded') {
+          stats.uploaded++;
+        } else if (stVal === 'Duplicate') {
+          stats.duplicate++;
         } else {
-          stats.unmatched++;
+          stats.pending++;
         }
       }
     } else {
-      stats.unmatched = stats.total;
+      stats.pending = stats.total;
     }
   } catch (e) {
-    stats.unmatched = stats.total;
+    stats.pending = stats.total;
   }
   return stats;
 }
 
 /**
- * Ultra-fast tab change detector & state sync in a single roundtrip.
- * If the active sheet matches clientSheetName, returns { changed: false } in ~15ms.
- * If changed, returns full state for the new sheet in a single call without a second roundtrip.
+ * Tab change detector & state sync in a single roundtrip.
  */
 function apiCheckActiveSheet(clientSheetName) {
   var sheet = SpreadsheetApp.getActiveSheet();
@@ -155,7 +162,7 @@ function apiGetState() {
   var maskedToken = AuthManager.getMaskedToken();
 
   var linked = sheet ? MetadataManager.getLinkedAccount(sheet) : null;
-  var stats = sheet ? getQuickSheetStats(sheet) : { total: 0, matched: 0, unmatched: 0 };
+  var stats = sheet ? getQuickSheetStats(sheet) : { total: 0, withImportId: 0, uploaded: 0, duplicate: 0, ready: 0 };
 
   return {
     isAuthorized: isAuth,
@@ -214,9 +221,9 @@ function apiUnlinkActiveSheet() {
 }
 
 /**
- * Runs the Match & Mark pipeline on the active sheet.
+ * Generates deterministic YNAB Import IDs on the active sheet.
  */
-function apiRunMatch() {
+function apiGenerateImportIds() {
   var sheet = SpreadsheetApp.getActiveSheet();
   if (!sheet) throw new Error('No active sheet.');
 
@@ -227,51 +234,29 @@ function apiRunMatch() {
 
   var headerMap = SheetLifecycle.detectHeaders(sheet);
 
-  // 1. Clear status columns first (idempotent lifecycle for formula-driven data)
-  SheetLifecycle.clearStatusColumns(sheet, headerMap);
-
-  // 2. Read transactions from sheet
+  // Read transactions from sheet
   var sheetTxs = SheetLifecycle.readTransactions(sheet, headerMap);
   if (sheetTxs.length === 0) {
-    return { matchedCount: 0, unmatchedCount: 0, total: 0 };
+    return { generatedCount: 0, total: 0 };
   }
 
-  // 3. Determine earliest date in sheet transactions
-  var minDate = sheetTxs[0].date;
-  for (var i = 1; i < sheetTxs.length; i++) {
-    if (sheetTxs[i].date < minDate) {
-      minDate = sheetTxs[i].date;
-    }
-  }
+  // Generate deterministic Import IDs
+  var result = Uploader.generateSheetImportIds(sheetTxs);
 
-  // Subtract 10 days buffer so transactions cleared or entered slightly earlier are included
-  var parts = minDate.split('-');
-  var minDateObj = new Date(Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
-  minDateObj.setUTCDate(minDateObj.getUTCDate() - 10);
-  var safeSinceDate = Utilities.formatDate(minDateObj, 'UTC', 'yyyy-MM-dd');
-
-  // 4. Fetch YNAB transactions for this account since safeSinceDate
-  var ynabTxs = YnabClient.fetchTransactionsSince(linked.budgetId, linked.accountId, safeSinceDate);
-
-  // 5. Run matching with 1-to-1 consumption pool
-  var matchResult = Matcher.matchSheetWithYnab(sheetTxs, ynabTxs);
-
-  // 6. Batch update sheet
-  SheetLifecycle.updateRowStatuses(sheet, matchResult.updates, headerMap);
+  // Batch update sheet rows
+  SheetLifecycle.updateRowStatuses(sheet, result.updates, headerMap);
 
   return {
-    matchedCount: matchResult.matchedCount,
-    unmatchedCount: matchResult.unmatchedCount,
-    total: sheetTxs.length,
-    ynabFetchedCount: ynabTxs.length,
-    details: matchResult.details || []
+    generatedCount: result.generatedCount,
+    total: sheetTxs.length
   };
 }
 
 /**
- * Runs the Upload pipeline on unmatched rows of the active sheet.
+ * Uploads all transaction rows on the active sheet to YNAB.
+ * Ensures deterministic YNAB Import IDs are generated and written to the sheet first.
  */
-function apiRunUpload() {
+function apiUploadTransactions() {
   var sheet = SpreadsheetApp.getActiveSheet();
   if (!sheet) throw new Error('No active sheet.');
 
@@ -283,20 +268,48 @@ function apiRunUpload() {
   var headerMap = SheetLifecycle.detectHeaders(sheet);
   var sheetTxs = SheetLifecycle.readTransactions(sheet, headerMap);
 
-  var uploadResult = Uploader.uploadNewTransactions(linked.budgetId, linked.accountId, sheetTxs);
+  if (sheetTxs.length === 0) {
+    return { uploadedCount: 0, duplicateCount: 0, total: 0 };
+  }
 
+  // 1. Ensure deterministic Import IDs are generated and written to the sheet first
+  var idResult = Uploader.generateSheetImportIds(sheetTxs);
+  if (idResult.updates.length > 0) {
+    SheetLifecycle.updateRowStatuses(sheet, idResult.updates, headerMap);
+    // Re-read transactions to ensure in-memory array has fresh Import IDs
+    sheetTxs = SheetLifecycle.readTransactions(sheet, headerMap);
+  }
+
+  // 2. Dispatch upload to YNAB
+  var uploadResult = Uploader.uploadAllTransactions(linked.budgetId, linked.accountId, sheetTxs);
+
+  // 3. Batch update row statuses (Uploaded with YNAB ID, or Duplicate)
   if (uploadResult.updates.length > 0) {
     SheetLifecycle.updateRowStatuses(sheet, uploadResult.updates, headerMap);
   }
 
   return {
     uploadedCount: uploadResult.uploadedCount,
-    duplicateCount: uploadResult.duplicateCount
+    duplicateCount: uploadResult.duplicateCount,
+    total: sheetTxs.length
   };
 }
 
 /**
- * Resets status columns on the active sheet.
+ * Retrieves the most recent YNAB transaction for the linked account on the active sheet.
+ */
+function apiGetLatestTransaction() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  if (!sheet) return null;
+
+  var linked = MetadataManager.getLinkedAccount(sheet);
+  if (!linked || !linked.budgetId || !linked.accountId) return null;
+
+  return YnabClient.getLatestAccountTransaction(linked.budgetId, linked.accountId);
+}
+
+/**
+ * Resets managed columns (YNAB Import ID, YNAB Status, YNAB ID) on the active sheet.
  */
 function apiResetStatus() {
   var sheet = SpreadsheetApp.getActiveSheet();
@@ -315,12 +328,7 @@ function apiDisconnect() {
   return { success: true };
 }
 
-/**
- * Alias for apiDisconnect to log out.
- */
-function apiLogOut() {
-  return apiDisconnect();
-}
+
 
 /**
  * Validates and saves a Personal Access Token into UserProperties.
